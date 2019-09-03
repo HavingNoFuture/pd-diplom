@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.db import models
 from django.urls import reverse
 from django.conf import settings
@@ -6,6 +8,46 @@ from django.utils.text import slugify
 from django.db.models.signals import pre_save
 
 from transliterate import translit
+
+
+from django.db import models
+from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.utils.translation import ugettext_lazy as _
+
+from .managers import UserManager
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+
+    email = models.EmailField(_('email address'), unique=True)
+    first_name = models.CharField(_('first name'), max_length=30)
+    last_name = models.CharField(_('last name'), max_length=30)
+    second_name = models.CharField(_('second_name'), max_length=30)
+    company = models.CharField(_('company'), max_length=100)
+    position = models.CharField(_('position'), max_length=100)
+    date_joined = models.DateTimeField(_('date joined'), auto_now_add=True)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    class Meta:
+        verbose_name = _('user')
+        verbose_name_plural = _('users')
+
+    def __str__(self):
+        return f'{self.email} - {self.get_name()}'
+
+    def get_full_name(self):
+        return f'{self.first_name} {self.second_name} {self.last_name}'
+
+    def get_name(self):
+        return f'{self.first_name} - {self.last_name}'
+
+    def is_staff(self):
+        return True
 
 
 def pre_save_slug(sender, instance, *args, **kwargs):
@@ -56,7 +98,7 @@ class Product(models.Model):
         return self.name
 
     def get_info(self): # ?
-        return f'{name} {category}'
+        return f'{self.name} {self.category}'
 
     # def get_absolute_url(self):
     #   return reverse('category', kwargs={'slug': self.slug})
