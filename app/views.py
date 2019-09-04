@@ -5,14 +5,15 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth import login, authenticate
 from .forms import RegistrationForm, LoginForm
 
-from app.models import User
-from django.contrib.auth.models import User
+from app.models import Category, Product, Shop, ProductInfo
 
 
 # Create your views here.
 def main_page_view(request):
     return render(request, 'app/main.html')
 
+
+# User's views
 
 def registration_view(request):
     form = RegistrationForm(request.POST or None)
@@ -40,8 +41,6 @@ def registration_view(request):
     return render(request, 'app/registration.html', context)
 
 
-
-
 def login_view(request):
     form = LoginForm(request.POST or None)
     context = {}
@@ -58,3 +57,25 @@ def login_view(request):
             return HttpResponseRedirect(reverse('main_page'))
 
     return render(request, 'app/login.html', context)
+
+
+# Product's views
+
+def catalog_view(request, *args, **kwargs):
+    category = request.GET.get('category')
+    shop = request.GET.get('shop')
+
+    context = {}
+    context['product_infos'] = ProductInfo.objects.all()
+
+    if category:
+
+        context["product_infos"] = ProductInfo.objects.filter(product__category__name__iexact=category)
+
+    if shop:
+        context["product_infos"] = ProductInfo.objects.filter(shop__name__iexact=shop)
+
+    context['shops'] = Shop.objects.all()
+    context['categories'] = Category.objects.all()
+
+    return render(request, 'app/catalog.html', context)

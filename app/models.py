@@ -19,7 +19,6 @@ from .managers import UserManager
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-
     email = models.EmailField(_('email address'), unique=True)
     first_name = models.CharField(_('first name'), max_length=30)
     last_name = models.CharField(_('last name'), max_length=30)
@@ -46,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_name(self):
         return f'{self.first_name} - {self.last_name}'
 
-    def is_staff(self):
+    def is_staff(self): # ?
         return True
 
 

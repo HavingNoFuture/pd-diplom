@@ -1,0 +1,39 @@
+
+<main role="main">
+
+  <div class="menu" style="width: 15%; display: inline-block">
+    <div class="categories">
+      <p>Категории:</p>
+      <ul>
+        {% for category in categories %}
+        <li><a href="{% url 'catalog' %}?category={{ category.name }}">{{ category.name }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="shops">
+      <p>Магазины:</p>
+      <ul>
+        {% for shop in shops %}
+        <li><a href="{% url 'catalog' %}?shop={{ shop.name }}">{{ shop.name }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="catalog" style="display: inline-block">
+    <h1>Продукты:</h1>
+    {% for product in product_infos %}
+        <div class="product_container" style="display: inline-block; width: 200px">
+          <h2><a href="#">{{product.product.name}}</a></h2>
+          <p>Магазин: {{product.shop.name}}</p>
+          <p>Параметры:</p>
+          {% for product_parameter in product.productparameter_set.all %}
+          <p>{{product_parameter.parameter.name}} - {{product_parameter.value}}</p>
+          {% endfor %}
+          <p>Категория: {{product.product.category.name}}</p>
+        </div>
+    {% endfor %}
+  </div>
+
+</main>
