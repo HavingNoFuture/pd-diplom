@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth import login, authenticate
 from .forms import RegistrationForm, LoginForm
 
-from app.models import Category, Product, Shop, ProductInfo
+from app.models import Category, Product, Shop, ProductInfo, Cart, CartItem
 
 
 # Create your views here.
@@ -79,3 +79,62 @@ def catalog_view(request, *args, **kwargs):
     context['categories'] = Category.objects.all()
 
     return render(request, 'app/catalog.html', context)
+
+
+# Cart's views
+
+def cart_session(request):
+    try:
+        cart_id = request.session['cart_id']
+        cart = Cart.objects.get(pk=cart_id)
+        request.session['total'] = cart.items.count()
+    except:
+        cart = Cart()
+        cart.save()
+        cart_id = cart.id
+        request.session['cart_id'] = cart_id
+        cart = Cart.objects.get(id=cart_id)
+    return cart
+
+
+def cart_view(request):
+    context = {}
+    context['cart'] = cart_session(request)
+    return render(request, 'app/cart.html', context)
+
+
+def add_to_cart_view(request):
+    slug = request.GET.get('slug')
+    cart = cart_session(request)
+    product = Product.objects.get(slug=slug)
+    cart.add_to_cart(product)
+
+    cart.count_cart_total()
+    return JsonResponse({})
+
+
+def remove_from_cart_view(request):
+    slug = request.GET.get('slug')
+    cart = cart_session(request)
+    product = Product.objects.get(slug=slug)
+    cart.remove_from_cart(product)
+
+    cart_total = cart.count_cart_total()
+    return JsonResponse({'cart_total': cart_total})
+
+
+def change_item_quantity_view(request):
+    context = {}
+    cart = cart_session(request)
+    context['cart'] = cart
+    quantity = int(request.GET.get('quantity', 1))
+    item_id = int(request.GET.get('item_id', 1))
+
+    cart_item = CartItem.objects.get(pk=item_id)
+    cart_item.change_quantity(quantity)
+
+    cart_total = cart.count_cart_total()
+
+    return JsonResponse({'item_total': cart_item.item_total,
+                         'cart_total': cart_total})
+

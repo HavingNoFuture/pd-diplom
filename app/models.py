@@ -17,6 +17,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from .managers import UserManager
 
+from decimal import Decimal
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
@@ -116,18 +118,12 @@ class ProductInfo(models.Model):
     def __str__(self):
         return f'{self.product.name} - Product Info'
 
-    # def get_absolute_url(self):
-    #   return reverse('category', kwargs={'slug': self.slug})
-
 
 class Parameter(models.Model):
     name = models.CharField(max_length = 120)
 
     def __str__(self):
         return self.name
-
-    # def get_absolute_url(self):
-    #   return reverse('category', kwargs={'slug': self.slug})
 
 
 class ProductParameter(models.Model):
@@ -137,9 +133,6 @@ class ProductParameter(models.Model):
 
     def __str__(self):
         return f'{self.product_info.product.name} - {self.parameter}'
-
-    # def get_absolute_url(self):
-    #   return reverse('category', kwargs={'slug': self.slug})
 
 
 ORDER_STATUS_CHOICES = (
@@ -191,3 +184,50 @@ class Contact(models.Model):
     # def get_absolute_url(self):
     #   return reverse('category', kwargs={'slug': self.slug})
 
+
+class CartItem(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    item_total = models.DecimalField(max_digits=9, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return f'Cart item for product {self.product.title}'
+
+    def change_quantity(self, quantity):
+        cart_item = self
+        cart_item.quantity = quantity
+        cart_item.item_total = Decimal(cart_item.product.price) * quantity
+        cart_item.save()
+
+
+class Cart(models.Model):
+    items = models.ManyToManyField(CartItem)
+    cart_total = models.DecimalField(max_digits=9, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return f'{self.pk}'
+
+    def add_to_cart(self, product):
+        cart = self
+        print(dir(product.productinfo_set))
+        new_item, _ = CartItem.objects.get_or_create(product=product, item_total=product.productinfo_set.price)
+        if new_item not in cart.items.all():
+            cart.items.add(new_item)
+            cart.save()
+
+    def remove_from_cart(self, product):
+        cart = self
+        for cart_item in cart.items.all():
+            if cart_item.product == product:
+                cart.items.remove(cart_item)
+                cart.save()
+
+    def count_cart_total(self):
+        cart = self
+        new_cart_total = Decimal(0.00)
+        for item in cart.items.all():
+            new_cart_total += Decimal(item.item_total)
+
+        cart.cart_total = new_cart_total
+        cart.save()
+        return cart.cart_total

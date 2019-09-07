@@ -1,6 +1,8 @@
 
 <main role="main">
-
+  <div class="header">
+    <a href="{% url 'cart' %}">Корзина</a>
+  </div>
   <div class="menu" style="width: 15%; display: inline-block">
     <div class="categories">
       <p>Категории:</p>
@@ -32,8 +34,31 @@
           <p>{{product_parameter.parameter.name}} - {{product_parameter.value}}</p>
           {% endfor %}
           <p>Категория: {{product.product.category.name}}</p>
+          <a class="add-to-cart" href="#" data-slug="{{product.product.slug}}" >Добавить в корзину</a>
         </div>
     {% endfor %}
   </div>
 
 </main>
+
+<script>
+  window.addEventListener('load', e => {
+    buttons = document.querySelectorAll('.add-to-cart');
+
+    for (let btn of buttons) {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        slug = e.target.dataset.slug;
+        console.log(slug)
+
+        fetch(`{% url 'add_to_cart' %}?slug=${slug}`, {
+          method: 'GET',
+        }).then((res) => {
+          return res.json();
+        }).then((data) => {
+
+        })
+      });
+    }
+  });
+</script>
