@@ -3,9 +3,9 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect, JsonResponse
 
 from django.contrib.auth import login, authenticate
-from .forms import RegistrationForm, LoginForm
+from .forms import RegistrationForm, LoginForm, OrderForm, ContactForm
 
-from app.models import Category, Product, Shop, ProductInfo, Cart, CartItem
+from app.models import Category, Product, Shop, ProductInfo, Cart, CartItem, Order
 
 
 # Create your views here.
@@ -106,7 +106,7 @@ def cart_view(request):
 def add_to_cart_view(request):
     slug = request.GET.get('slug')
     cart = cart_session(request)
-    product = Product.objects.get(slug=slug)
+    product = ProductInfo.objects.get(product__slug=slug)
     cart.add_to_cart(product)
 
     cart.count_cart_total()
@@ -138,3 +138,52 @@ def change_item_quantity_view(request):
     return JsonResponse({'item_total': cart_item.item_total,
                          'cart_total': cart_total})
 
+
+def checkout_view(request):
+    context = {}
+    context['cart'] = cart_session(request)
+    context['categories'] = Category.objects.all()
+    return render(request, 'app/checkout.html', context)
+
+
+def order_create_view(request):
+    context = {}
+    form = OrderForm(request.POST or None)
+    context['form'] = OrderForm(request.POST or None)
+    cart = cart_session(request)
+    context['cart'] = cart
+
+    if form.is_valid():
+        new_order = Order()
+        user = request.user
+        new_order.user = user
+        new_order.cart = cart
+        new_order.save()
+        new_order.buying_type = form.cleaned_data['buying_type']
+        new_order.address = form.cleaned_data['address']
+        new_order.comment = form.cleaned_data['comment']
+        new_order.total = cart.cart_total
+        new_order.save()
+
+        del request.session['cart_id']
+        return HttpResponseRedirect(reverse('congratulations'))
+    return render(request, 'app/order.html', context)
+
+
+def congratulations_view(request):
+    context = {}
+    context['user'] = request.user
+    context['categories'] = Category.objects.all()
+    return render(request, 'app/congratulations.html', context)
+
+
+
+def account_view(request):
+    context = {}
+    try:
+        context['orders'] = Order.objects.filter(user=request.user).order_by('-pk')
+    except:
+        context['orders'] = None
+    context['categories'] = Category.objects.all()
+    context['contact_form'] = ContactForm()
+    return render(request, 'app/account.html', context)

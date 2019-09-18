@@ -1,5 +1,4 @@
 <div class="container mt-3">
-  {{cart.items}}
   <div class="row">
     {% if cart.items.count > 0 %}
     <div id="my-cart" class="col-lg-8 col-md-9 col-sm-12 order-md-2 mb-4">
@@ -10,15 +9,14 @@
       <ul class="list-group mb-3">
         {% for item in cart.items.all %}
           <li class="list-group-item d-flex justify-content-xl-between lh-condensed row product-item">
-            <div class="col">
-              <h6 class="my-0">{{ item.product.title }}</h6>
-              <small class="text-muted">{{ item.product.description }}</small>
+            <div class="col" style="display: inline-block">
+              <h6 class="my-0">{{ item.product.product.name}}</h6>
             </div>
-            <span class="text-muted mr-3 item-total">{{ item.item_total }} руб.</span>
-            <form class="quantity-form mr-3" action="#" method="GET">
+            <span class="text-muted mr-3 item-total" style="display: inline-block">{{ item.item_total }} руб.</span>
+            <form class="quantity-form mr-3" action="#" method="GET" style="display: inline-block">
               <input type="number" class="" name="quantity" value="{{item.quantity}}" data-id={{item.pk}} min="1" style="width:50px">
             </form>
-            <form action="#">
+            <form action="#" style="display: inline-block">
               <input type="submit" class="btn btn-secondary remove-from-cart col" data-slug="{{item.product.slug}}" value="Удалить">
             </form>
           </li>

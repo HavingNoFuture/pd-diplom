@@ -20,14 +20,21 @@ from .managers import UserManager
 from decimal import Decimal
 
 
+USER_TYPE_CHOICES = (
+    ('Покупатель', 'Покупатель'),
+    ('Продавец', 'Продавец')
+)
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
     first_name = models.CharField(_('first name'), max_length=30)
     last_name = models.CharField(_('last name'), max_length=30)
-    second_name = models.CharField(_('second_name'), max_length=30)
-    company = models.CharField(_('company'), max_length=100)
-    position = models.CharField(_('position'), max_length=100)
+    second_name = models.CharField(_('second_name'), max_length=30, blank=True)
+    company = models.CharField(_('company'), max_length=100, blank=True)
+    position = models.CharField(_('position'), max_length=100, blank=True)
     date_joined = models.DateTimeField(_('date joined'), auto_now_add=True)
+    type = models.CharField(max_length=100, choices=USER_TYPE_CHOICES, default='Покупатель')
 
     objects = UserManager()
 
@@ -59,24 +66,22 @@ def pre_save_slug(sender, instance, *args, **kwargs):
             instance.slug = slugify(instance.name)
 
 
-
 class Shop(models.Model):
     name = models.CharField(max_length=90)
     url = models.CharField(max_length=120)
-    filename = models.CharField(max_length=90)
     slug = models.SlugField(blank=True)
+    logo = models.ImageField(blank=True)
 
     def __str__(self):
         return self.name
 
-    # def get_absolute_url(self):
-    #   return reverse('category', kwargs={'slug': self.slug})
+    def get_absolute_url(self):
+      return reverse('shop', kwargs={'slug': self.slug})
 
 pre_save.connect(pre_save_slug, sender=Shop)
 
 
 class Category(models.Model):
-    ida = models.PositiveIntegerField() 
     name = models.CharField(max_length=30)
     shops = models.ManyToManyField('Shop', related_name='categories')
     slug = models.SlugField(blank=True)
@@ -84,16 +89,24 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-    # def get_absolute_url(self):
-    #   return reverse('category', kwargs={'slug': self.slug})
+    def get_absolute_url(self):
+      return reverse('category', kwargs={'slug': self.slug})
 
 pre_save.connect(pre_save_slug, sender=Category)
+
+
+class Manufacturer(models.Model):
+	name = models.CharField(max_length=120)
+	logo = models.ImageField()
 
 
 class Product(models.Model):
     name = models.CharField(max_length=120)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    model = models.CharField(max_length = 120)
     slug = models.SlugField(blank=True)
+    image = models.ImageField()
+    description = models.TextField()
 
     def __str__(self):
         return self.name
@@ -101,8 +114,8 @@ class Product(models.Model):
     def get_info(self): # ?
         return f'{self.name} {self.category}'
 
-    # def get_absolute_url(self):
-    #   return reverse('category', kwargs={'slug': self.slug})
+    def get_absolute_url(self):
+      return reverse('product', kwargs={'slug': self.slug})
 
 pre_save.connect(pre_save_slug, sender=Product)
 
@@ -110,10 +123,8 @@ pre_save.connect(pre_save_slug, sender=Product)
 class ProductInfo(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
-    model = models.CharField(max_length = 120) # ?
     quantity = models.PositiveSmallIntegerField()
     price = models.PositiveIntegerField()
-    price_rrc = models.PositiveIntegerField() # ?
 
     def __str__(self):
         return f'{self.product.name} - Product Info'
@@ -127,9 +138,9 @@ class Parameter(models.Model):
 
 
 class ProductParameter(models.Model):
-    product_info = models.ForeignKey(ProductInfo, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)
-    value = models.CharField(max_length=90) # ?
+    value = models.CharField(max_length=90)
 
     def __str__(self):
         return f'{self.product_info.product.name} - {self.parameter}'
@@ -140,31 +151,6 @@ ORDER_STATUS_CHOICES = (
     ('Выполняется', 'Выполняется'),
     ('Оплачен', 'Оплачен'),
 )
-
-
-class Order(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    dt = models.CharField(max_length=100)
-    status = models.CharField(max_length=100, choices=ORDER_STATUS_CHOICES, default='Принят в обработку')
-
-    def __str__(self):
-        return self.pk
-
-    # def get_absolute_url(self):
-    #   return reverse('category', kwargs={'slug': self.slug})
-
-
-class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
-    quantity = models.PositiveSmallIntegerField()
-
-    def __str__(self):
-        return self.pk
-
-    # def get_absolute_url(self):
-    #   return reverse('category', kwargs={'slug': self.slug})
 
 
 CONTACT_TYPE_CHOICES = (
@@ -179,19 +165,16 @@ class Contact(models.Model):
     value = models.PositiveIntegerField()
 
     def __str__(self):
-        return self.pk
-
-    # def get_absolute_url(self):
-    #   return reverse('category', kwargs={'slug': self.slug})
+        return f'{self.pk}'
 
 
 class CartItem(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(ProductInfo, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     item_total = models.DecimalField(max_digits=9, decimal_places=2, default=0.00)
 
     def __str__(self):
-        return f'Cart item for product {self.product.title}'
+        return f'Cart item for product {self.product.product.name}'
 
     def change_quantity(self, quantity):
         cart_item = self
@@ -207,10 +190,9 @@ class Cart(models.Model):
     def __str__(self):
         return f'{self.pk}'
 
-    def add_to_cart(self, product):
+    def add_to_cart(self, productInfo):
         cart = self
-        print(dir(product.productinfo_set))
-        new_item, _ = CartItem.objects.get_or_create(product=product, item_total=product.productinfo_set.price)
+        new_item, _ = CartItem.objects.get_or_create(product=productInfo, item_total=productInfo.price)
         if new_item not in cart.items.all():
             cart.items.add(new_item)
             cart.save()
@@ -231,3 +213,16 @@ class Cart(models.Model):
         cart.cart_total = new_cart_total
         cart.save()
         return cart.cart_total
+
+
+class Order(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    buying_type = models.CharField(max_length=40, choices=(('Самовывоз', 'Самовывоз'), ('Доставка', 'Доставка')), default='Самовывоз')
+    address = models.CharField(max_length=500, default='Самовывоз', blank=True)
+    create_date = models.DateTimeField(auto_now_add=True)
+    comment = models.TextField()
+    status = models.CharField(max_length=100, choices=ORDER_STATUS_CHOICES, default='Принят в обработку')
+
+    def __str__(self):
+        return f'Заказ №{self.pk}'

@@ -1,0 +1,55 @@
+<div class="container mt-3">
+  <form action="#" method="POST">
+    {% csrf_token %}
+    <li class="list-group-item d-flex justify-content-xl-between lh-condensed row product-item">
+      <div class="col">
+        <h6 class="my-0">{{form.first_name.label}}</h6>
+      </div>
+      <div class="col" style="width:49%">
+        {{form.first_name}}
+      </div>
+    </li>
+    <li class="list-group-item d-flex justify-content-xl-between lh-condensed row product-item">
+      <div class="col">
+        <h6 class="my-0">{{form.last_name.label}}</h6>
+      </div>
+      <div class="col" style="width:49%">
+        {{form.last_name}}
+      </div>
+    </li>
+    <li class="list-group-item d-flex justify-content-xl-between lh-condensed row product-item">
+      <div class="col">
+        <h6 class="my-0">{{form.phone.label}}</h6>
+      </div>
+      <div class="col" style="width:49%">
+        {{form.phone}}
+      </div>
+    </li>
+    <li id="buying_type" class="list-group-item d-flex justify-content-xl-between lh-condensed row product-item">
+      <div class="col">
+        <h6 class="my-0">{{form.buying_type.label}}</h6>
+      </div>
+      <div class="col" style="width:49%">
+        {{form.buying_type}}
+      </div>
+    </li>
+    <li id="address" class="" style="display:none!important">
+      <div class="col">
+        <h6 class="my-0">{{form.address.label}}</h6>
+      </div>
+      <div class="col" style="width:49%">
+        {{form.address}}
+      </div>
+    </li>
+    <li class="list-group-item d-flex justify-content-xl-between lh-condensed row product-item">
+      <div class="col">
+        <h6 class="my-0">{{form.comment.label}}</h6>
+      </div>
+      <div class="col" style="width:49%">
+        {{form.comment}}
+      </div>
+    </li>
+    <br>
+    <button type="submit" class="btn btn-secondary col" >Оформить заказ</button>
+  </form>
+</div>

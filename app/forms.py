@@ -1,6 +1,16 @@
 from django import forms
 # from django.contrib.auth.models import User
-from app.models import User
+from app.models import User, Order, Contact
+
+
+class ContactForm(forms.ModelForm):
+    class Meta(object):
+        model = Contact
+        fields = (
+            'type',
+            'value'
+        )
+
 
 class RegistrationForm(forms.ModelForm):
     password_check = forms.CharField(widget=forms.PasswordInput)
@@ -19,6 +29,7 @@ class RegistrationForm(forms.ModelForm):
             'email',
             'password',
             'password_check',
+            'type',
             'company',
             'position',
         )
@@ -26,11 +37,12 @@ class RegistrationForm(forms.ModelForm):
         labels = {
             'first_name': 'Имя:',
             'last_name': 'Фамилия:',
-            'second_name': 'Отчество',
+            'second_name': 'Отчество:',
             'email': 'Email:',
             'username': 'Логин:',
-            'company': 'Компания',
-            'position': 'Должность',
+            'company': 'Компания:',
+            'position': 'Должность:',
+            'type': 'Тип аккаунта:'
         }
 
         help_texts = {
@@ -47,8 +59,6 @@ class RegistrationForm(forms.ModelForm):
 
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError('Этот Email уже занят другим пользователем!')
-
-
 
 
 class LoginForm(forms.Form):
@@ -68,3 +78,24 @@ class LoginForm(forms.Form):
         user = User.objects.get(email=email)
         if user and not user.check_password(password):
             raise forms.ValidationError('Неверный пароль!')
+
+
+class OrderForm(forms.ModelForm):
+
+    class Meta(object):
+        model = Order
+        fields = (
+            'address',
+            'buying_type',
+            'comment'
+        )
+
+        labels = {
+            'address': 'Адресс доставки:',
+            'buying_type': 'Тип доставки:',
+            'comment': 'Комментарий:',
+        }
+
+        help_texts = {
+            'address': '*Обязательно укажите адресс!'
+        }
