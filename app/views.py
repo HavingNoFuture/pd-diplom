@@ -197,10 +197,12 @@ def order_create_view(request):
 
     if form.is_valid():
         new_order = Order()
-        user = request.user
-        new_order.user = user
+        new_order.user = request.user
         new_order.cart = cart
-        new_order.save()
+        new_order.first_name = form.cleaned_data['first_name']
+        new_order.last_name = form.cleaned_data['last_name']
+        new_order.second_name = form.cleaned_data['second_name']
+        new_order.phone = form.cleaned_data['phone']
         new_order.buying_type = form.cleaned_data['buying_type']
         new_order.address = form.cleaned_data['address']
         new_order.comment = form.cleaned_data['comment']

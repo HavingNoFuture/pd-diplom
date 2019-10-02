@@ -238,29 +238,17 @@ class Cart(models.Model):
 
 class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    second_name = models.CharField(max_length=100, blank=True)
+    phone = models.IntegerField()
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     buying_type = models.CharField(max_length=40, choices=(('Самовывоз', 'Самовывоз'), ('Доставка', 'Доставка')), default='Самовывоз')
     address = models.CharField(max_length=500, default='Самовывоз', blank=True)
     create_date = models.DateTimeField(auto_now_add=True)
-    comment = models.TextField()
+    comment = models.TextField(blank=True)
     status = models.CharField(max_length=100, choices=ORDER_STATUS_CHOICES, default='Принят в обработку')
 
     def __str__(self):
         return f'Заказ №{self.pk}'
 
-
-
-from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from rest_framework.authtoken.models import Token
-
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_auth_token(sender, instance=None, created=False, **kwargs):
-    if created:
-        Token.objects.create(user=instance)
-
-from django.contrib.auth.models import User as da
-
-# for user in da.objects.all():
-#     Token.objects.get_or_create(user=user)

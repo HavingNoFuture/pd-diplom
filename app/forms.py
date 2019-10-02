@@ -85,19 +85,28 @@ class OrderForm(forms.ModelForm):
     class Meta(object):
         model = Order
         fields = (
+            'first_name',
+            'last_name',
+            'second_name',
+            'phone',
             'address',
             'buying_type',
             'comment'
         )
 
         labels = {
+            'first_name': 'Ваше имя: ',
+            'last_name': 'Ваша фамилия: ',
+            'second_name': 'Ваше отчество: ',
+            'phone': 'Мобильный номер: ',
             'address': 'Адресс доставки:',
             'buying_type': 'Тип доставки:',
             'comment': 'Комментарий:',
         }
 
         help_texts = {
-            'address': '*Обязательно укажите адресс!'
+            'address': '*Обязательно укажите адресс!',
+            'first_name': 'ФИО по умолчанию взяты из вашего профиля.',
         }
 
 

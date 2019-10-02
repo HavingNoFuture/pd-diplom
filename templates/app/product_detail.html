@@ -1,0 +1,48 @@
+{% load staticfiles %}
+<main role="main">
+  <div class="container mt-3">
+    <!-- Example row of columns -->
+    <div class="row">
+      <div class="col-md-12">
+        <div class="left" style="display: inline-block; width: 20%">
+          <img src="{% static product.image.url %}" width="120">
+        </div>
+        <div class="right" style="display: inline-block;">
+          <h2>{{ product.name|title }}</h2>
+          <p>{{product.description}}</p>
+          <p><b>Параматеры:</b></p>
+          <div class="parameters">
+            {% for productparameter in product.productparameter_set.all %}
+            <p style="display: inline-block">{{ productparameter.name }}</p>
+            <p style="display: inline-block">{{ productparameter.value }}</p>
+            {% endfor %}
+          </div>
+          <p><b>Магазины:</b></p>
+          <div class="prices">
+            <p><b>Цены в магазинах:</b></p>
+            {% for productinfo in product.productinfo_set.all %}
+            <p style="display: inline-block">{{ productinfo.shop }}</p>
+            <p style="display: inline-block"> - {{ productinfo.price }} руб.</p>
+            {% if request.user.is_authenticated %}
+              <form method="post" action="#" style="display: inline-block;">
+                {% csrf_token %}
+                <input type="submit" class="btn btn-secondary add-to-cart" data-productinfopk="{{productinfo.pk}}" value="Добавить в корзину »">
+              </form>
+            {% else %}
+              <p>Вы не авторизованы! Чтобы продолжить покупки
+                <a href="{% url 'login' %}">войдите</a> или
+                <a href="{% url 'registration' %}">зарегистрируйтесь</a>.</p>
+            {% endif%}
+            <div></div>
+            {% endfor %}
+            <p></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- /container -->
+
+</main>
+
+{% include "./includes/add_to_cart_script.html" %}
