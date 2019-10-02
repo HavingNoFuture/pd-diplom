@@ -99,3 +99,8 @@ class OrderForm(forms.ModelForm):
         help_texts = {
             'address': '*Обязательно укажите адресс!'
         }
+
+
+class ShopsCheckboxForm(forms.ModelForm):
+    shop = forms.DateField(widget=forms.Select(choices=()))
+

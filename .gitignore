@@ -6,7 +6,10 @@ __pycache__/
 *$py.class
 
 *.sqlite3
+*.jpg
+*.png
 env/
+app/migrations/*
 
 ### Project specific ###
 settings_local.py

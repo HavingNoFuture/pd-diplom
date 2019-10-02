@@ -25,40 +25,21 @@
 
   <div class="catalog" style="display: inline-block">
     <h1>Продукты:</h1>
-    {% for product in product_infos %}
+
+    {% for product in products %}
         <div class="product_container" style="display: inline-block; width: 200px">
-          <h2><a href="#">{{product.product.name}}</a></h2>
+          <a href="{% url 'product' slug=product.slug %}"><h2>{{product.name}}</h2></a>
           <p>Магазин: {{product.shop.name}}</p>
           <p>Параметры:</p>
           {% for product_parameter in product.productparameter_set.all %}
           <p>{{product_parameter.parameter.name}} - {{product_parameter.value}}</p>
           {% endfor %}
-          <p>Категория: {{product.product.category.name}}</p>
-          <a class="add-to-cart" href="#" data-slug="{{product.product.slug}}" >Добавить в корзину</a>
+          <p>Категория: {{product.category.name}}</p>
         </div>
     {% endfor %}
   </div>
 
 </main>
 
-<script>
-  window.addEventListener('load', e => {
-    buttons = document.querySelectorAll('.add-to-cart');
+{% include "./includes/add_to_cart_script.html" %}
 
-    for (let btn of buttons) {
-      btn.addEventListener('click', e => {
-        e.preventDefault();
-        slug = e.target.dataset.slug;
-        console.log(slug)
-
-        fetch(`{% url 'add_to_cart' %}?slug=${slug}`, {
-          method: 'GET',
-        }).then((res) => {
-          return res.json();
-        }).then((data) => {
-
-        })
-      });
-    }
-  });
-</script>

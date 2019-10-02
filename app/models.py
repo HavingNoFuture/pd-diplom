@@ -10,7 +10,6 @@ from django.db.models.signals import pre_save
 from transliterate import translit
 
 
-from django.db import models
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.utils.translation import ugettext_lazy as _
@@ -25,6 +24,10 @@ USER_TYPE_CHOICES = (
     ('Продавец', 'Продавец')
 )
 
+USER_STATE_CHOICES = (
+    ('on', 'on'),
+    ('off', 'off')
+)
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
@@ -34,7 +37,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     company = models.CharField(_('company'), max_length=100, blank=True)
     position = models.CharField(_('position'), max_length=100, blank=True)
     date_joined = models.DateTimeField(_('date joined'), auto_now_add=True)
-    type = models.CharField(max_length=100, choices=USER_TYPE_CHOICES, default='Покупатель')
+    type = models.CharField(max_length=25, choices=USER_TYPE_CHOICES, default='Покупатель')
+    state = models.CharField(max_length=3, choices=USER_STATE_CHOICES, default='off')
 
     objects = UserManager()
 
@@ -56,6 +60,21 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def is_staff(self): # ?
         return True
+
+
+
+CONTACT_TYPE_CHOICES = (
+    ('Телефон', 'Телефон'),
+    ('Адрес', 'Адрес'),
+)
+
+class Contact(models.Model):
+    type = models.CharField(max_length=100, choices=CONTACT_TYPE_CHOICES, default='Телефон')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    value = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f'{self.pk}'
 
 
 def pre_save_slug(sender, instance, *args, **kwargs):
@@ -143,7 +162,7 @@ class ProductParameter(models.Model):
     value = models.CharField(max_length=90)
 
     def __str__(self):
-        return f'{self.product_info.product.name} - {self.parameter}'
+        return f'{self.product.name} - {self.parameter}'
 
 
 ORDER_STATUS_CHOICES = (
@@ -153,34 +172,30 @@ ORDER_STATUS_CHOICES = (
 )
 
 
-CONTACT_TYPE_CHOICES = (
-    ('Телефон', 'Телефон'),
-    ('Адрес', 'Адрес'),
-)
-
-
-class Contact(models.Model):
-    type = models.CharField(max_length=100, choices=CONTACT_TYPE_CHOICES, default='Телефон')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    value = models.PositiveIntegerField()
-
-    def __str__(self):
-        return f'{self.pk}'
-
-
 class CartItem(models.Model):
-    product = models.ForeignKey(ProductInfo, on_delete=models.CASCADE)
+    productinfo = models.ForeignKey(ProductInfo, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    item_total = models.DecimalField(max_digits=9, decimal_places=2, default=0.00)
+    item_total = models.DecimalField(max_digits=9, decimal_places=2, default=0.00, blank=True)
 
     def __str__(self):
-        return f'Cart item for product {self.product.product.name}'
+        return f'Cart item for product {self.productinfo.product.name}'
+
+
+    def count_item_total(self):
+        self.item_total = Decimal(self.productinfo.price) * Decimal(self.quantity)
+        self.save()
+
 
     def change_quantity(self, quantity):
-        cart_item = self
-        cart_item.quantity = quantity
-        cart_item.item_total = Decimal(cart_item.product.price) * quantity
-        cart_item.save()
+        self.quantity = quantity
+        self.save()
+        self.count_item_total()
+
+
+    def change_productinfo(self, productinfo):
+        self.productinfo = productinfo
+        self.save()
+
 
 
 class Cart(models.Model):
@@ -190,17 +205,23 @@ class Cart(models.Model):
     def __str__(self):
         return f'{self.pk}'
 
-    def add_to_cart(self, productInfo):
+    def add_to_cart(self, productinfo):
         cart = self
-        new_item, _ = CartItem.objects.get_or_create(product=productInfo, item_total=productInfo.price)
+        print(productinfo)
+        new_item, _ = CartItem.objects.get_or_create(productinfo=productinfo)
+        print(new_item.productinfo.pk)
+
         if new_item not in cart.items.all():
+            new_item.quantity = 1
+            new_item.save()
+            new_item.count_item_total()
             cart.items.add(new_item)
             cart.save()
 
-    def remove_from_cart(self, product):
+    def remove_from_cart(self, cartitem):
         cart = self
         for cart_item in cart.items.all():
-            if cart_item.product == product:
+            if cart_item == cartitem:
                 cart.items.remove(cart_item)
                 cart.save()
 
@@ -226,3 +247,20 @@ class Order(models.Model):
 
     def __str__(self):
         return f'Заказ №{self.pk}'
+
+
+
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
+
+from django.contrib.auth.models import User as da
+
+# for user in da.objects.all():
+#     Token.objects.get_or_create(user=user)

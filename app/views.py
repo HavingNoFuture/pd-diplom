@@ -1,8 +1,13 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponseRedirect, JsonResponse
 
 from django.contrib.auth import login, authenticate
+
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from app.serializers import OrderShortSerializer, StateSerializer, OrderFullSerializer
+
 from .forms import RegistrationForm, LoginForm, OrderForm, ContactForm
 
 from app.models import Category, Product, Shop, ProductInfo, Cart, CartItem, Order
@@ -66,19 +71,41 @@ def catalog_view(request, *args, **kwargs):
     shop = request.GET.get('shop')
 
     context = {}
-    context['product_infos'] = ProductInfo.objects.all()
+    context['products'] = Product.objects.all()
 
     if category:
-
-        context["product_infos"] = ProductInfo.objects.filter(product__category__name__iexact=category)
+        context["products"] = Product.objects.filter(category__name__iexact=category)
 
     if shop:
-        context["product_infos"] = ProductInfo.objects.filter(shop__name__iexact=shop)
+        productinfos = ProductInfo.objects.filter(shop__name__iexact=shop)
+        products = []
+        for productinfo in productinfos:
+            products.append(productinfo.product)
+        context["products"] = products
 
     context['shops'] = Shop.objects.all()
     context['categories'] = Category.objects.all()
 
     return render(request, 'app/catalog.html', context)
+
+
+def product_detail_view(request, *args, **kwargs):
+    context = {}
+    slug = kwargs['slug']
+    product = get_object_or_404(Product, slug=slug)
+    context['product'] = product
+    context['categories'] = Category.objects.all()
+
+    return render(request, 'app/product_detail.html', context)
+
+
+def products_of_category_view(request, *args, **kwargs):
+    slug = kwargs['slug']
+
+    context = {}
+    context['products'] = Product.objects.filter(category__title__iexact=slug)
+    context['categories'] = Category.objects.all()
+    return render(request, 'app/products_of_category.html', context)
 
 
 # Cart's views
@@ -104,38 +131,53 @@ def cart_view(request):
 
 
 def add_to_cart_view(request):
-    slug = request.GET.get('slug')
+    productinfopk = request.GET.get('productinfopk')
+    productinfo = ProductInfo.objects.get(pk=productinfopk)
+
     cart = cart_session(request)
-    product = ProductInfo.objects.get(product__slug=slug)
-    cart.add_to_cart(product)
+    cart.add_to_cart(productinfo)
 
     cart.count_cart_total()
+
+    return JsonResponse({})
+
+
+def change_productinfo_view(request):
+    productinfopk = request.GET.get('productinfopk')
+    cartitempk = request.GET.get('cartitempk')
+
+    productinfo = ProductInfo.objects.get(pk=productinfopk)
+    cartitem = CartItem.objects.get(pk=cartitempk)
+
+    cartitem.change_productinfo(productinfo)
     return JsonResponse({})
 
 
 def remove_from_cart_view(request):
-    slug = request.GET.get('slug')
+    cartitempk = request.GET.get('cartitempk')
     cart = cart_session(request)
-    product = Product.objects.get(slug=slug)
-    cart.remove_from_cart(product)
+    cart_item = CartItem.objects.get(pk=cartitempk)
+    cart.remove_from_cart(cart_item)
 
     cart_total = cart.count_cart_total()
-    return JsonResponse({'cart_total': cart_total})
+    return JsonResponse({'cart_total': cart_total,
+                         'cartitempk': cartitempk})
 
 
 def change_item_quantity_view(request):
     context = {}
     cart = cart_session(request)
     context['cart'] = cart
-    quantity = int(request.GET.get('quantity', 1))
-    item_id = int(request.GET.get('item_id', 1))
+    quantity = request.GET.get('quantity', 1)
+    cartitempk = request.GET.get('cartitempk')
 
-    cart_item = CartItem.objects.get(pk=item_id)
+    cart_item = CartItem.objects.get(pk=cartitempk)
     cart_item.change_quantity(quantity)
 
     cart_total = cart.count_cart_total()
 
     return JsonResponse({'item_total': cart_item.item_total,
+                         'cartitempk': cartitempk,
                          'cart_total': cart_total})
 
 
@@ -177,7 +219,6 @@ def congratulations_view(request):
     return render(request, 'app/congratulations.html', context)
 
 
-
 def account_view(request):
     context = {}
     try:
@@ -187,3 +228,54 @@ def account_view(request):
     context['categories'] = Category.objects.all()
     context['contact_form'] = ContactForm()
     return render(request, 'app/account.html', context)
+
+
+# API's views
+from rest_framework import permissions
+
+
+class OrderView(APIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            id = int(kwargs['id'])
+            order = Order.objects.get(pk=id)
+            serializer = OrderFullSerializer(order)
+            return Response({"order": serializer.data})
+        except KeyError:
+            queryset = Order.objects.filter(user=request.user)
+            serializer = OrderShortSerializer(queryset, many=True)
+            return Response({"orders": serializer.data})
+
+
+class StateView(APIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        return Response({"state": user.state})
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+
+
+        serializer = StateSerializer(data={'state': "on"})
+
+
+        if serializer.is_valid():
+            serializer.save(user=user)
+            # print(serializer.data)
+            # user.state = serializer.data
+            # user.save()
+
+        # Работающий пример
+        # user.state = request.data['state']
+        # user.save()
+        return Response()
+
+
+class PriceUpdateView(APIView):
+
+    def post(self):
+        pass

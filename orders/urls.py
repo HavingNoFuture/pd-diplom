@@ -15,33 +15,33 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, reverse_lazy
+from django.conf.urls import url
 
-from app.views import registration_view, \
-    main_page_view, \
-    login_view, \
-    catalog_view, \
-    cart_view, \
-    remove_from_cart_view, \
-    change_item_quantity_view, \
-    add_to_cart_view, \
-    checkout_view, \
-    order_create_view, \
-    congratulations_view, \
-    account_view
+from app import views
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('registration', registration_view, name='registration'),
-    path('main', main_page_view, name='main_page'),
-    path('login', login_view, name="login"),
-    path('account/', account_view, name='account'),
-    path('catalog/', catalog_view, name='catalog'),
-    path('cart/', cart_view, name='cart'),
-    path('cart/remove_from_cart/', remove_from_cart_view, name='remove_from_cart'),
-    path('cart/change_item_quantity/', change_item_quantity_view, name='change_item_quantity'),
-    path('cart/add_to_cart/', add_to_cart_view, name='add_to_cart'),
-    path('cart/checkout/', checkout_view, name='checkout'),
-    path('cart/order/', order_create_view, name='order_create'),
-    path('cart/congratulations/', congratulations_view, name='congratulations'),
+    path('registration', views.registration_view, name='registration'),
+    path('main', views.main_page_view, name='main_page'),
+    path('login', views.login_view, name="login"),
+    path('account/', views.account_view, name='account'),
+    path('catalog/', views.catalog_view, name='catalog'),
+    path('category/<str:slug>/', views.products_of_category_view, name='category'),
+    path('product/<str:slug>/', views.product_detail_view, name='product'),
+    path('cart/', views.cart_view, name='cart'),
+    path('cart/remove_from_cart/', views.remove_from_cart_view, name='remove_from_cart'),
+    path('cart/change_item_quantity/', views.change_item_quantity_view, name='change_item_quantity'),
+    path('cart/change_productinfo_cart/', views.change_productinfo_view, name='change_productinfo'),
+    path('cart/add_to_cart/', views.add_to_cart_view, name='add_to_cart'),
+    path('cart/checkout/', views.checkout_view, name='checkout'),
+    path('cart/order/', views.order_create_view, name='order_create'),
+    path('cart/congratulations/', views.congratulations_view, name='congratulations'),
+    path('api/v1/', include('djoser.urls')),
+    path('api/v1/', include('djoser.urls.authtoken')),
+    path('api/v1/partner/order/', views.OrderView.as_view(), name='api_order_short'),
+    path('api/v1/partner/order/<int:id>', views.OrderView.as_view(), name='api_order_full'),
+    path('api/v1/partner/state/', views.StateView.as_view(), name='api_state'),
+    path('api/v1/partner/update/', views.PriceUpdateView.as_view(), name='api_state'),
 ]
+

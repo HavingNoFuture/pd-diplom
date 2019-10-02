@@ -5,7 +5,7 @@ from django.conf  import settings
 import os
 
 from django.core.management.base import BaseCommand
-from app.models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact
+from app.models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter
 
 BASE_DIR = r'D:\python_projects\django_projects\pd-diplom'
 # print(settings.BASE_DIR)
