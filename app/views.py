@@ -71,18 +71,18 @@ def catalog_view(request, *args, **kwargs):
     shop = request.GET.get('shop')
 
     context = {}
-    context['products'] = Product.objects.all()
+    products = Product.objects.all()
 
     if category:
-        context["products"] = Product.objects.filter(category__name__iexact=category)
+        products = Product.objects.filter(category__name__iexact=category)
 
     if shop:
         productinfos = ProductInfo.objects.filter(shop__name__iexact=shop)
         products = []
         for productinfo in productinfos:
             products.append(productinfo.product)
-        context["products"] = products
 
+    context["products"] = products
     context['shops'] = Shop.objects.all()
     context['categories'] = Category.objects.all()
 

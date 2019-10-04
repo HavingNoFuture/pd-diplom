@@ -1,5 +1,5 @@
 from django.template import Library
-import re
+
 
 register = Library()
 

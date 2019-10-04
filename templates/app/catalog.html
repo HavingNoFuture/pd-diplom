@@ -1,4 +1,5 @@
-
+{% load staticfiles %}
+{% load min_price %}
 <main role="main">
   <div class="header">
     <a href="{% url 'cart' %}">Корзина</a>
@@ -29,12 +30,8 @@
     {% for product in products %}
         <div class="product_container" style="display: inline-block; width: 200px">
           <a href="{% url 'product' slug=product.slug %}"><h2>{{product.name}}</h2></a>
-          <p>Магазин: {{product.shop.name}}</p>
-          <p>Параметры:</p>
-          {% for product_parameter in product.productparameter_set.all %}
-          <p>{{product_parameter.parameter.name}} - {{product_parameter.value}}</p>
-          {% endfor %}
           <p>Категория: {{product.category.name}}</p>
+          <p>Цена от: {{product.productinfo_set.all|min_price}} руб.</p>
         </div>
     {% endfor %}
   </div>
