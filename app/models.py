@@ -55,18 +55,20 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         return f'{self.first_name} {self.second_name} {self.last_name}'
 
+    get_full_name.short_description = "Full name of the person"
+
     def get_name(self):
-        return f'{self.first_name} - {self.last_name}'
+        return f'{self.first_name} {self.last_name}'
 
     def is_staff(self): # ?
         return True
-
 
 
 CONTACT_TYPE_CHOICES = (
     ('Телефон', 'Телефон'),
     ('Адрес', 'Адрес'),
 )
+
 
 class Contact(models.Model):
     type = models.CharField(max_length=100, choices=CONTACT_TYPE_CHOICES, default='Телефон')
@@ -115,17 +117,21 @@ pre_save.connect(pre_save_slug, sender=Category)
 
 
 class Manufacturer(models.Model):
-	name = models.CharField(max_length=120)
-	logo = models.ImageField()
+    name = models.CharField(max_length=120)
+    logo = models.ImageField()
+
+    def __str__(self):
+        return self.name
 
 
 class Product(models.Model):
     name = models.CharField(max_length=120)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    model = models.CharField(max_length = 120)
+    model = models.CharField(max_length = 120, blank=True)
     slug = models.SlugField(blank=True)
     image = models.ImageField()
     description = models.TextField()
+    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.CASCADE, blank=True)
 
     def __str__(self):
         return self.name
@@ -165,37 +171,26 @@ class ProductParameter(models.Model):
         return f'{self.product.name} - {self.parameter}'
 
 
-ORDER_STATUS_CHOICES = (
-    ('Принят в обработку', 'Принят в обработку'),
-    ('Выполняется', 'Выполняется'),
-    ('Оплачен', 'Оплачен'),
-)
-
-
 class CartItem(models.Model):
     productinfo = models.ForeignKey(ProductInfo, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     item_total = models.DecimalField(max_digits=9, decimal_places=2, default=0.00, blank=True)
 
     def __str__(self):
-        return f'Cart item for product {self.productinfo.product.name}'
-
+        return f'Cart item №{self.pk}'
 
     def count_item_total(self):
         self.item_total = Decimal(self.productinfo.price) * Decimal(self.quantity)
         self.save()
-
 
     def change_quantity(self, quantity):
         self.quantity = quantity
         self.save()
         self.count_item_total()
 
-
     def change_productinfo(self, productinfo):
         self.productinfo = productinfo
         self.save()
-
 
 
 class Cart(models.Model):
@@ -203,7 +198,7 @@ class Cart(models.Model):
     cart_total = models.DecimalField(max_digits=9, decimal_places=2, default=0.00)
 
     def __str__(self):
-        return f'{self.pk}'
+        return f'Cart № {self.pk}'
 
     def add_to_cart(self, productinfo):
         cart = self
@@ -236,6 +231,16 @@ class Cart(models.Model):
         return cart.cart_total
 
 
+ORDER_STATUS_CHOICES = (
+    ('Новый', 'Новый'),
+    ('Подтвержден', 'Подтвержден'),
+    ('Собран', 'Собран'),
+    ('Отправлен', 'Отправлен'),
+    ('Доставлен', 'Доставлен'),
+    ('Отменен', 'Отменен'),
+)
+
+
 class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=100)
@@ -247,7 +252,7 @@ class Order(models.Model):
     address = models.CharField(max_length=500, default='Самовывоз', blank=True)
     create_date = models.DateTimeField(auto_now_add=True)
     comment = models.TextField(blank=True)
-    status = models.CharField(max_length=100, choices=ORDER_STATUS_CHOICES, default='Принят в обработку')
+    status = models.CharField(max_length=100, choices=ORDER_STATUS_CHOICES, default='Новый')
 
     def __str__(self):
         return f'Заказ №{self.pk}'
