@@ -216,8 +216,11 @@ def order_create_view(request):
 
 def congratulations_view(request):
     context = {}
-    context['user'] = request.user
-    context['categories'] = Category.objects.all()
+    user = request.user
+    try:
+        context['order'] = Order.objects.filter(user=user).latest('create_date')
+    except:
+        context['order'] = None
     return render(request, 'app/congratulations.html', context)
 
 
