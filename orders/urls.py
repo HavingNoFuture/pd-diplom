@@ -37,11 +37,6 @@ urlpatterns = [
     path('cart/checkout/', views.checkout_view, name='checkout'),
     path('cart/order/', views.order_create_view, name='order_create'),
     path('cart/congratulations/', views.congratulations_view, name='congratulations'),
-    path('api/v1/', include('djoser.urls')),
-    path('api/v1/', include('djoser.urls.authtoken')),
-    path('api/v1/partner/order/', views.OrderView.as_view(), name='api_order_short'),
-    path('api/v1/partner/order/<int:id>', views.OrderView.as_view(), name='api_order_full'),
-    path('api/v1/partner/state/', views.StateView.as_view(), name='api_state'),
-    path('api/v1/partner/update/', views.PriceUpdateView.as_view(), name='api_state'),
+    path('api/v1/', include('api.urls')),
 ]
 
