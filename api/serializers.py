@@ -1,13 +1,12 @@
 from rest_framework import serializers
 
-from django.contrib.auth.models import User
-from app.models import Order, Cart, CartItem, ProductInfo, Product
+from app.models import Order, Cart, CartItem, ProductInfo, Product, Shop
 
 
 class StateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ("state",)
+        model = Shop
+        fields = ("name", "state")
 
 
 class ProductSerializer(serializers.ModelSerializer):

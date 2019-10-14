@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
+from requests import get
+
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import permissions
 
-from app.models import Order
-
-from api.serializers import OrderShortSerializer, StateSerializer, OrderFullSerializer
 from api.management.commands.load_yaml import Command
 
-
-from django.core.validators import URLValidator
-from django.core.exceptions import ValidationError
-from requests import get
-
-
-
+from app.models import Order, Shop
+from api.serializers import OrderShortSerializer, StateSerializer, OrderFullSerializer
 
 
 # API's views
@@ -24,11 +21,13 @@ class OrderView(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
+            # Получить детали заказа по id.
             id = int(kwargs['id'])
             order = Order.objects.get(pk=id)
             serializer = OrderFullSerializer(order)
             return Response({"order": serializer.data})
         except KeyError:
+            # Получить список заказов.
             queryset = Order.objects.filter(user=request.user)
             serializer = OrderShortSerializer(queryset, many=True)
             return Response({"orders": serializer.data})
@@ -38,58 +37,49 @@ class StateView(APIView):
     permission_classes = [permissions.IsAuthenticated, ]
 
     def get(self, request, *args, **kwargs):
-        user = request.user
-        return Response({"state": user.state})
+        """Получить текущий статус магазина по id."""
+        shop = request.user.controlled_shop.all()
+        serializer = StateSerializer(shop, many=True)
+        return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
+        """Изменить статус магазина."""
         user = request.user
+        state = request.data.get('state')
 
+        try:
+            id = int(kwargs['id'])
+            try:
+                shop = Shop.objects.get(pk=id)
+            except Shop.DoesNotExist as e:
+                return Response({'Status': False, 'Error': str(e)})
 
-        serializer = StateSerializer(data={'state': "on"})
+            if user not in shop.user_admins.all():
+                return Response({'Status': False, 'Errors': 'У вас нет прав редактирования этого магазина.'})
 
+            if state and state in ('on', 'off'):
+                try:
+                    shop.state=state
+                    return Response({'Status': True})
+                except ValueError as e:
+                    return Response({'Status': False, 'Errors': str(e)})
+            return Response({'Status': False, 'Errors': 'State не прошел сериализацию.'})
 
-        if serializer.is_valid():
-            serializer.save(user=user)
-            # print(serializer.data)
-            # user.state = serializer.data
-            # user.save()
-
-        # Работающий пример
-        # user.state = request.data['state']
-        # user.save()
-        return Response()
-
-#
-# # получить текущий статус
-# def get(self, request, *args, **kwargs):
-#     shop = request.user.shop
-#     serializer = ShopSerializer(shop)
-#     return Response(serializer.data)
-#
-#
-# # изменить текущий статус
-# def post(self, request, *args, **kwargs):
-#     state = request.data.get('state')
-#     if state:
-#         try:
-#             Shop.objects.filter(user_id=request.user.id).update(state=strtobool(state))
-#             return JsonResponse({'Status': True})
-#         except ValueError as error:
-#             return JsonResponse({'Status': False, 'Errors': str(error)})
-#     return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
-#
-#
-#
-
-
-
-
+        except KeyError as e:
+            try:
+                Shop.objects.filter(user_admins=request.user.id).update(state=str(state))
+                return Response({'Status': True})
+            except ValueError as error:
+                return Response({'Status': False, 'Errors': str(error)})
 
 
 from django.conf import settings
 
 class PriceUpdateView(APIView):
     def get(self, request, *args, **kwargs):
+        """test
+        Обновление ассортимента магазина из файла yaml.
+        """
         load_yaml = Command()
 
         with open(f'{settings.BASE_DIR}/data/shop1.yaml', 'r', encoding='utf-8') as stream:
@@ -98,14 +88,14 @@ class PriceUpdateView(APIView):
         return Response(result)
 
     def post(self, request, *args, **kwargs):
-
+        """Обновление ассортимента магазина с yaml url."""
         url = request.data.get('url')
         if url:
             validate_url = URLValidator()
             try:
                 validate_url(url)
             except ValidationError as e:
-                return Response({'Status': False, 'Error': str(e)})
+                return Response({'Status': False, 'Errors': str(e)})
             else:
                 stream = get(url).content
 

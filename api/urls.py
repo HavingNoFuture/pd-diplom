@@ -24,6 +24,7 @@ urlpatterns = [
     path('partner/order/', views.OrderView.as_view(), name='api_order_short'),
     path('partner/order/<int:id>', views.OrderView.as_view(), name='api_order_full'),
     path('partner/state/', views.StateView.as_view(), name='api_state'),
+    path('partner/state/<int:id>', views.StateView.as_view(), name='api_state_post'),
     path('partner/update/', views.PriceUpdateView.as_view(), name='api_state'),
 ]
 
