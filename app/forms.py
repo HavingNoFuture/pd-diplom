@@ -1,5 +1,4 @@
 from django import forms
-# from django.contrib.auth.models import User
 from app.models import User, Order, Contact
 
 
@@ -29,7 +28,6 @@ class RegistrationForm(forms.ModelForm):
             'email',
             'password',
             'password_check',
-            'type',
             'company',
             'position',
         )

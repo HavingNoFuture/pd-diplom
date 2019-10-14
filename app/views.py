@@ -8,9 +8,11 @@ from .forms import RegistrationForm, LoginForm, OrderForm, ContactForm
 
 from app.models import Category, Product, Shop, ProductInfo, Cart, CartItem, Order
 
-
+from api.management.commands import load_yaml
 # Create your views here.
 def main_page_view(request):
+    command = load_yaml.Command
+    command.handle()
     return render(request, 'app/main.html')
 
 

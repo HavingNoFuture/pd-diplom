@@ -19,16 +19,6 @@ from .managers import UserManager
 from decimal import Decimal
 
 
-USER_TYPE_CHOICES = (
-    ('Покупатель', 'Покупатель'),
-    ('Продавец', 'Продавец')
-)
-
-USER_STATE_CHOICES = (
-    ('on', 'on'),
-    ('off', 'off')
-)
-
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
     first_name = models.CharField(_('first name'), max_length=30)
@@ -37,8 +27,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     company = models.CharField(_('company'), max_length=100, blank=True)
     position = models.CharField(_('position'), max_length=100, blank=True)
     date_joined = models.DateTimeField(_('date joined'), auto_now_add=True)
-    type = models.CharField(max_length=25, choices=USER_TYPE_CHOICES, default='Покупатель')
-    state = models.CharField(max_length=3, choices=USER_STATE_CHOICES, default='off')
 
     objects = UserManager()
 
@@ -87,11 +75,19 @@ def pre_save_slug(sender, instance, *args, **kwargs):
             instance.slug = slugify(instance.name)
 
 
+USER_STATE_CHOICES = (
+    ('on', 'on'),
+    ('off', 'off')
+)
+
+
 class Shop(models.Model):
     name = models.CharField(max_length=90)
     url = models.CharField(max_length=120)
     slug = models.SlugField(blank=True)
     logo = models.ImageField(blank=True)
+    state = models.CharField(max_length=3, choices=USER_STATE_CHOICES, default='off')
+    user_admins = models.ManyToManyField('User', related_name='controlled_shop')
 
     def __str__(self):
         return self.name
@@ -116,14 +112,6 @@ class Category(models.Model):
 pre_save.connect(pre_save_slug, sender=Category)
 
 
-class Manufacturer(models.Model):
-    name = models.CharField(max_length=120)
-    logo = models.ImageField()
-
-    def __str__(self):
-        return self.name
-
-
 class Product(models.Model):
     name = models.CharField(max_length=120)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -131,7 +119,6 @@ class Product(models.Model):
     slug = models.SlugField(blank=True)
     image = models.ImageField()
     description = models.TextField()
-    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.CASCADE, blank=True)
 
     def __str__(self):
         return self.name
@@ -163,7 +150,7 @@ class Parameter(models.Model):
 
 
 class ProductParameter(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product_info = models.ForeignKey(ProductInfo, on_delete=models.CASCADE)
     parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)
     value = models.CharField(max_length=90)
 
