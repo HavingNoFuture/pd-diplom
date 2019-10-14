@@ -48,6 +48,7 @@ class StateView(APIView):
         state = request.data.get('state')
 
         try:
+            # Изменить статус магазина по id.
             id = int(kwargs['id'])
             try:
                 shop = Shop.objects.get(pk=id)
@@ -59,16 +60,25 @@ class StateView(APIView):
 
             if state and state in ('on', 'off'):
                 try:
-                    shop.state=state
-                    return Response({'Status': True})
+                    shop.state = state
+                    return Response({
+                        'shop_id': id,
+                        'state': state
+                    })
                 except ValueError as e:
                     return Response({'Status': False, 'Errors': str(e)})
             return Response({'Status': False, 'Errors': 'State не прошел сериализацию.'})
 
         except KeyError as e:
+            # Изменить статус всех магазинов, контролируемых пользователем.
             try:
-                Shop.objects.filter(user_admins=request.user.id).update(state=str(state))
-                return Response({'Status': True})
+                shops = Shop.objects.filter(user_admins=request.user.id)
+                shops.update(state=str(state))
+                serializer = StateSerializer(shops, many=True)
+                if serializer.is_valid():
+                    return Response({'Shops': serializer.data})
+                return Response({'Status': False, 'Errors': 'State не прошел сериализацию.'})
+
             except ValueError as error:
                 return Response({'Status': False, 'Errors': str(error)})
 
