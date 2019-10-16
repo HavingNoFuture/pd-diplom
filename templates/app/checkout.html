@@ -1,4 +1,6 @@
+{% extends "./_base.html" %}
 
+{% block content %}
 <div class="container mt-3">
 
   <div class="row">
@@ -6,20 +8,20 @@
     <div id="my-cart" class="col-lg-8 col-md-9 col-sm-12 order-md-2 mb-4">
       <h4 class="d-flex justify-content-between align-items-center mb-3">
         <span class="text-muted">Предварительный заказ</span>
-        <span class="badge badge-secondary badge-pill cart-quantity">{{ cart.items.count }}</span>
+        <span class="badge badge-secondary badge-pill cart-quantity">({{ cart.items.count }})</span>
       </h4>
       <ul class="list-group mb-3">
         {% for item in cart.items.all %}
           <li class="list-group-item d-flex justify-content-xl-between lh-condensed row product-item">
             <div class="col">
-              <h6 class="my-0">{{ item.product.title }}</h6>
+              <h3 class="my-0">{{ item.productinfo.product.name|title }}</h3>
             </div>
             <span class="text-muted mr-3 item-total">{{ item.quantity }} шт.</span>
             <span class="text-muted mr-3 item-total">{{ item.item_total }} руб.</span>
           </li>
         {% endfor %}
         <li class="list-group-item d-flex justify-content-center lh-condensed row product-item">
-          <h5 id="cart-total" class="text-center">Итоговая стоимость: {{ cart.cart_total }} руб.</h5>
+          <h3 id="cart-total" class="text-center">Итоговая стоимость: {{ cart.cart_total }} руб.</h3>
         </li>
       </ul>
     </div>
@@ -43,3 +45,4 @@
   </div>
 
 </div>
+{% endblock %}

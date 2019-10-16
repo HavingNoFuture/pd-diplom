@@ -155,7 +155,7 @@ class ProductParameter(models.Model):
     value = models.CharField(max_length=90)
 
     def __str__(self):
-        return f'{self.product.name} - {self.parameter}'
+        return f'{self.product_info.product.name} - {self.parameter}'
 
 
 class CartItem(models.Model):

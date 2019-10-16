@@ -1,6 +1,8 @@
+{% extends "./_base.html" %}
+{% block content %}
 <div class="container mt-3">
   {% if order %}
-  <div class="main"></div>
+  <div class="main">
     <h2>Спасибо за заказ!</h2>
     <p><b>Номер Вашего заказа:</b> {{ order.pk }}</p>
     <p>Наш оператор свяжется с Вами!</p>
@@ -49,3 +51,4 @@
       <a href="{% url 'main_page' %}">На главную</a>
   </div>
 </div>
+{% endblock %}

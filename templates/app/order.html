@@ -1,5 +1,8 @@
-<!DOCTYPE html>{% load staticfiles %}
+{% extends "./_base.html" %}
+{% load staticfiles %}
 {% load default_value %}
+
+{% block content %}
 <div class="container mt-3">
   <form action="#" method="POST">
     {% csrf_token %}
@@ -66,3 +69,4 @@
 </div>
 
 {% include "./includes/hide_buying_type_script.html" %}
+{% endblock %}

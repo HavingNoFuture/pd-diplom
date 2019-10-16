@@ -1,34 +1,23 @@
-<main role="main">
+{% extends "./_base.html" %}{% load staticfiles %}
+{% block title %}Login{% endblock %}
+{% block import %}<link rel="stylesheet" href="{% static 'login.css' %}">{% endblock %}
 
-  <div class="container">
+{% block content %}
+<div class="login-form">
+  <form action="#" method="POST">
+    {% csrf_token %}
+    {% for field in form %}
+    <p class="">{{ field.label}}</p>
+    <p class="">{{ field }}</p>
+    {% if field.help_text %}
+    <p>{{ field.help_text }}</p>
+    {% endif %}
+    {% endfor %}
+    <p><b>{{ form.non_field_errors }}</b></p>
 
-    <div class="alert alert-dark" role="alert">
-      <h2 class="text-center">Форма входа</h2>
-      <br>
-      <form action="#" method="POST">
-        {% csrf_token %}
-        <ul class="list-group mb-3 ">
-          {% for field in form %}
-            <li class="list-group-item d-flex justify-content-xl-between lh-condensed row product-item align-items-center">
-              <h6 class="my-0 col text-center">{{ field.label}}</h6>
-              <p class="my-0 col text-center">{{ field }}</p>
-            </li>
-            {% if field.help_text %}
-              <p>{{field.help_text}}</p>
-            {% endif %}
-          {% endfor %}
-          <br>
-          <h5>{{ form.non_field_errors }}</h5>
-
-
-        </ul>
-        <a type="button" href="{% url 'registration' %}" class="btn btn-secondary col" >Зарегистрироваться</a>
-        <br>
-        <button type="submit" class="btn btn-secondary col" >Войти</button>
-      </form>
-    </div>
-
-
-  </div> <!-- /container -->
-
-</main>
+    <br>
+    <button type="submit" class="login-btn">Войти</button>
+    <a class="" href="{% url 'registration' %}">Зарегистрироваться</a>
+  </form>
+</div>
+{% endblock %}

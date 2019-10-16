@@ -26,6 +26,7 @@ urlpatterns = [
     path('main', views.main_page_view, name='main_page'),
     path('login', views.login_view, name="login"),
     path('account/', views.account_view, name='account'),
+    path('account/order/<int:id>', views.account_order_view, name='account'),
     path('catalog/', views.catalog_view, name='catalog'),
     path('category/<str:slug>/', views.products_of_category_view, name='category'),
     path('product/<str:slug>/', views.product_detail_view, name='product'),

@@ -1,0 +1,17 @@
+.center {
+	width: 66%;
+	margin: auto;
+}
+
+.col {
+	width: 49.5%;
+	display: inline-block;
+}
+
+.ralign {
+	text-align: right;
+}
+
+.lalign {
+	text-align: left;
+}

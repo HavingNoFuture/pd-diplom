@@ -1,3 +1,5 @@
+{% extends "./_base.html" %}
+{% block content %}
 <div class="container mt-3">
   <div class="row">
     {% if cart.items.count > 0 %}
@@ -65,3 +67,4 @@
 {% include "./includes/select_shop_in_cart_script.html" %}
 {% include "./includes/change_item_quantity_script.html" %}
 {% include "./includes/remove_from_cart_script.html" %}
+{% endblock %}

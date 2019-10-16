@@ -8,17 +8,15 @@ from .forms import RegistrationForm, LoginForm, OrderForm, ContactForm
 
 from app.models import Category, Product, Shop, ProductInfo, Cart, CartItem, Order
 
-from api.management.commands import load_yaml
-# Create your views here.
+
 def main_page_view(request):
-    command = load_yaml.Command
-    command.handle()
     return render(request, 'app/main.html')
 
 
 # User's views
 
 def registration_view(request):
+
     form = RegistrationForm(request.POST or None)
     context = {}
     context['form'] = form
@@ -231,3 +229,17 @@ def account_view(request):
     context['categories'] = Category.objects.all()
     context['contact_form'] = ContactForm()
     return render(request, 'app/account.html', context)
+
+
+def account_order_view(request, id, *args, **kwargs):
+    user = request.user
+
+    pk = kwargs['id']
+    order = Order.objects.get(pk=pk)
+
+    context = {}
+    if user in order.user:
+        context['order'] = order
+    else:
+        context['order'] = None
+    return render(request, 'app/account_order.html', context)

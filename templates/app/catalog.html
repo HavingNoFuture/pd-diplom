@@ -1,8 +1,14 @@
+{% extends "./_base.html" %}
 {% load staticfiles %}
 {% load min_price %}
+
+{% block content %}
 <main role="main">
-  <div class="header">
-    <a href="{% url 'cart' %}">Корзина</a>
+  <div class="shop-header">
+    <div class="menu" style="width: 15%; display: inline-block"></div>
+    <div class="menu" style="display: inline-block">
+      <h1>Продукты:</h1>
+    </div>
   </div>
   <div class="menu" style="width: 15%; display: inline-block">
     <div class="categories">
@@ -25,13 +31,13 @@
   </div>
 
   <div class="catalog" style="display: inline-block">
-    <h1>Продукты:</h1>
 
     {% for product in products %}
         <div class="product_container" style="display: inline-block; width: 200px">
           <a href="{% url 'product' slug=product.slug %}"><h2>{{product.name}}</h2></a>
+          <img src="{% static product.image.url %}" width="120">
           <p>Категория: {{product.category.name}}</p>
-          <p>Цена от: {{product.productinfo_set.all|min_price}} руб.</p>
+          <p>{{product.productinfo_set.all|min_price}}</p>
         </div>
     {% endfor %}
   </div>
@@ -39,4 +45,4 @@
 </main>
 
 {% include "./includes/add_to_cart_script.html" %}
-
+{% endblock %}
