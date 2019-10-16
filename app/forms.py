@@ -64,7 +64,7 @@ class LoginForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput)
 
     email.label = 'Email:'
-    password.label= 'Пароль:'
+    password.label = 'Пароль:'
 
     def clean(self):
         email = self.cleaned_data['email']

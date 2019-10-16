@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse,Http404
 
 from django.contrib.auth import login, authenticate
 
@@ -50,6 +50,7 @@ def login_view(request):
     if form.is_valid():
         email = form.cleaned_data['email']
         password = form.cleaned_data['password']
+        print(password)
         # email = User.objects.get(email=email).email
 
         login_user = authenticate(email=email, password=password)
@@ -220,6 +221,8 @@ def congratulations_view(request):
     return render(request, 'app/congratulations.html', context)
 
 
+# Account's views
+
 def account_view(request):
     context = {}
     try:
@@ -232,14 +235,10 @@ def account_view(request):
 
 
 def account_order_view(request, id, *args, **kwargs):
-    user = request.user
-
-    pk = kwargs['id']
-    order = Order.objects.get(pk=pk)
-
+    order = get_object_or_404(Order, pk=id)
     context = {}
-    if user in order.user:
+    if request.user == order.user:
         context['order'] = order
     else:
-        context['order'] = None
+        raise Http404
     return render(request, 'app/account_order.html', context)

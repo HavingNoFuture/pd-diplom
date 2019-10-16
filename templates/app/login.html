@@ -4,10 +4,10 @@
 
 {% block content %}
 <div class="login-form">
-  <form action="#" method="POST">
+  <form action="" method="POST">
     {% csrf_token %}
     {% for field in form %}
-    <p class="">{{ field.label}}</p>
+    <p class=""><b>{{ field.label}}</b></p>
     <p class="">{{ field }}</p>
     {% if field.help_text %}
     <p>{{ field.help_text }}</p>
