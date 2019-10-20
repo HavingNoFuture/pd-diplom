@@ -63,7 +63,7 @@ class Command(BaseCommand):
             return {'Status': 'Success'}
 
         except yaml.YAMLError as e:
-            return {'Status': 'Error', 'Errors': str(e)}
+            return {'Status': False, 'Errors': str(e)}
 
         # TODO: удалить перед релизом
         # work:

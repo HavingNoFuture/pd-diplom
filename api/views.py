@@ -61,6 +61,7 @@ class StateView(APIView):
             if state and state in ('on', 'off'):
                 try:
                     shop.state = state
+                    shop.save()
                     return Response({
                         'shop_id': id,
                         'state': state
@@ -72,10 +73,10 @@ class StateView(APIView):
         except KeyError as e:
             # Изменить статус всех магазинов, контролируемых пользователем.
             try:
-                shops = Shop.objects.filter(user_admins=request.user.id)
-                shops.update(state=str(state))
-                serializer = StateSerializer(shops, many=True)
-                if serializer.is_valid():
+                if state and state in ('on', 'off'):
+                    shops = Shop.objects.filter(user_admins=request.user.id)
+                    shops.update(state=str(state))
+                    serializer = StateSerializer(shops, many=True)
                     return Response({'Shops': serializer.data})
                 return Response({'Status': False, 'Errors': 'State не прошел сериализацию.'})
 
