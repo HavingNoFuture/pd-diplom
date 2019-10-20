@@ -86,6 +86,16 @@ class StateView(APIView):
 from django.conf import settings
 
 class PriceUpdateView(APIView):
+    def get(self, request, *args, **kwargs):
+        # TODO: удалить перед релизом
+        filename = fr'{settings.BASE_DIR}\data\shop1.yaml'
+        print(filename)
+        with open(filename, 'r', encoding='utf-8') as stream:
+            print(stream)
+            load_yaml = Command()
+            e = load_yaml.handle(stream)
+
+        return Response({str(e)})
 
     def post(self, request, *args, **kwargs):
         """Обновление ассортимента магазина с yaml url."""
