@@ -14,12 +14,21 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.urls import path, include
 from rest_framework import routers
+from rest_framework.schemas import get_schema_view
+
+from django.urls import path, include
+
 from api import views
 
 
 urlpatterns = [
+    path('openapi', get_schema_view(
+        title="Your Project",
+        description="API for all things …",
+        # version="1.0.0",
+        urlconf='api.urls'
+    ), name='openapi-schema'),
     path('', include('djoser.urls')),
     path('', include('djoser.urls.authtoken')),
 ]
@@ -31,24 +40,3 @@ router.register(r'partner/update', views.PriceUpdateViewSet, basename='price_upd
 
 
 urlpatterns += router.urls
-
-
-
-#
-#
-# from django.urls import path, include
-# from api import views
-#
-#
-#
-#
-# urlpatterns = [
-#     path('', include('djoser.urls')),
-#     path('', include('djoser.urls.authtoken')),
-#     path('partner/order/', views.OrderView.as_view(), name='api_order_short'),
-#     path('partner/order/<int:id>', views.OrderView.as_view(), name='api_order_full'),
-#     path('partner/state/', views.StateView.as_view(), name='api_state'),
-#     path('partner/state/<int:id>', views.StateView.as_view(), name='api_state_post'),
-#     path('partner/update/', views.PriceUpdateView.as_view(), name='api_state'),
-# ]
-#

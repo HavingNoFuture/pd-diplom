@@ -1,0 +1,579 @@
+openapi: 3.0.2
+info:
+  title: ''
+  version: TODO
+paths:
+  /api/v1/users/:
+    get:
+      operationId: ListUsers
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required: []
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  email:
+                    type: string
+                    format: email
+                    readOnly: true
+    post:
+      operationId: createUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - email
+              - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 254
+                password:
+                  type: string
+                  writeOnly: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - email
+                properties:
+                  email:
+                    type: string
+                    format: email
+                    maxLength: 254
+                  id:
+                    type: integer
+                    readOnly: true
+  /api/v1/users/me/:
+    get:
+      operationId: meUser
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required: []
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  email:
+                    type: string
+                    format: email
+                    readOnly: true
+    put:
+      operationId: meUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required: []
+              properties: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required: []
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  email:
+                    type: string
+                    format: email
+                    readOnly: true
+    patch:
+      operationId: meUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required: []
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  email:
+                    type: string
+                    format: email
+                    readOnly: true
+    delete:
+      operationId: meUser
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required: []
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  email:
+                    type: string
+                    format: email
+                    readOnly: true
+  /api/v1/users/{id}/:
+    get:
+      operationId: retrieveUser
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this user.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required: []
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  email:
+                    type: string
+                    format: email
+                    readOnly: true
+    put:
+      operationId: updateUser
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this user.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required: []
+              properties: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required: []
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  email:
+                    type: string
+                    format: email
+                    readOnly: true
+    patch:
+      operationId: partial_updateUser
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this user.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required: []
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  email:
+                    type: string
+                    format: email
+                    readOnly: true
+    delete:
+      operationId: destroyUser
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this user.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - current_password
+                properties:
+                  current_password:
+                    type: string
+  /api/v1/partner/order/:
+    get:
+      operationId: ListOrders
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+  /api/v1/partner/order/{id}/:
+    get:
+      operationId: retrieveOrder
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this order.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+  /api/v1/partner/state/:
+    get:
+      operationId: ListShops
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+    post:
+      operationId: createShop
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+  /api/v1/partner/state/{id}/:
+    get:
+      operationId: retrieveShop
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this shop.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+    patch:
+      operationId: partial_updateShop
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this shop.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+  /api/v1/partner/update/:
+    get:
+      operationId: ListPriceUpdateViewSets
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+    post:
+      operationId: createPriceUpdateViewSet
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+  /api/v1/users/activation/:
+    post:
+      operationId: activationUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - uid
+              - token
+              properties:
+                uid:
+                  type: string
+                token:
+                  type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - uid
+                - token
+                properties:
+                  uid:
+                    type: string
+                  token:
+                    type: string
+  /api/v1/users/resend_activation/:
+    post:
+      operationId: resend_activationUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - email
+                properties:
+                  email:
+                    type: string
+                    format: email
+  /api/v1/users/reset_password/:
+    post:
+      operationId: reset_passwordUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - email
+                properties:
+                  email:
+                    type: string
+                    format: email
+  /api/v1/users/reset_password_confirm/:
+    post:
+      operationId: reset_password_confirmUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - uid
+              - token
+              - new_password
+              properties:
+                uid:
+                  type: string
+                token:
+                  type: string
+                new_password:
+                  type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - uid
+                - token
+                - new_password
+                properties:
+                  uid:
+                    type: string
+                  token:
+                    type: string
+                  new_password:
+                    type: string
+  /api/v1/users/reset_email/:
+    post:
+      operationId: reset_usernameUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - email
+                properties:
+                  email:
+                    type: string
+                    format: email
+  /api/v1/users/reset_email_confirm/:
+    post:
+      operationId: reset_username_confirmUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - new_email
+              properties:
+                new_email:
+                  type: string
+                  format: email
+                  maxLength: 254
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - new_email
+                properties:
+                  new_email:
+                    type: string
+                    format: email
+                    maxLength: 254
+  /api/v1/users/set_password/:
+    post:
+      operationId: set_passwordUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - new_password
+              - current_password
+              properties:
+                new_password:
+                  type: string
+                current_password:
+                  type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - new_password
+                - current_password
+                properties:
+                  new_password:
+                    type: string
+                  current_password:
+                    type: string
+  /api/v1/users/set_email/:
+    post:
+      operationId: set_usernameUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - new_email
+              properties:
+                new_email:
+                  type: string
+                  format: email
+                  maxLength: 254
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - new_email
+                properties:
+                  new_email:
+                    type: string
+                    format: email
+                    maxLength: 254
+  /api/v1/token/login/:
+    post:
+      operationId: CreateTokenCreate
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required: []
+              properties:
+                password:
+                  type: string
+                email:
+                  type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required: []
+                properties:
+                  password:
+                    type: string
+                  email:
+                    type: string
+  /api/v1/token/logout/:
+    post:
+      operationId: CreateTokenDestroy
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
