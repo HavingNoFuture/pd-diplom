@@ -13,18 +13,42 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path, include
 
+from django.urls import path, include
+from rest_framework import routers
 from api import views
 
 
 urlpatterns = [
     path('', include('djoser.urls')),
     path('', include('djoser.urls.authtoken')),
-    path('partner/order/', views.OrderView.as_view(), name='api_order_short'),
-    path('partner/order/<int:id>', views.OrderView.as_view(), name='api_order_full'),
-    path('partner/state/', views.StateView.as_view(), name='api_state'),
-    path('partner/state/<int:id>', views.StateView.as_view(), name='api_state_post'),
-    path('partner/update/', views.PriceUpdateView.as_view(), name='api_state'),
 ]
 
+router = routers.SimpleRouter()
+router.register(r'partner/order', views.OrderViewSet)
+router.register(r'partner/state', views.StateViewSet)
+router.register(r'partner/update', views.PriceUpdateViewSet, basename='price_update')
+
+
+urlpatterns += router.urls
+
+
+
+#
+#
+# from django.urls import path, include
+# from api import views
+#
+#
+#
+#
+# urlpatterns = [
+#     path('', include('djoser.urls')),
+#     path('', include('djoser.urls.authtoken')),
+#     path('partner/order/', views.OrderView.as_view(), name='api_order_short'),
+#     path('partner/order/<int:id>', views.OrderView.as_view(), name='api_order_full'),
+#     path('partner/state/', views.StateView.as_view(), name='api_state'),
+#     path('partner/state/<int:id>', views.StateView.as_view(), name='api_state_post'),
+#     path('partner/update/', views.PriceUpdateView.as_view(), name='api_state'),
+# ]
+#

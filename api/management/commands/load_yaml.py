@@ -1,6 +1,9 @@
 import yaml
+from requests import get
 
+from django.core.validators import URLValidator
 from django.core.management.base import BaseCommand
+
 from app.models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter
 
 
@@ -8,10 +11,22 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         pass
 
-    def handle(self, stream, *args, **options):
+    def handle(self, url, *args, **options):
+        # TODO: удалить перед релизом
+        # Тест. Проверка на файл
+        if url.__class__.__name__ == 'TextIOWrapper':
+            stream = url
+        else:
+            # Оставить.
+            validate_url = URLValidator()
+            validate_url(url)
+            stream = get(url).content
+
         try:
             data = yaml.safe_load(stream)
-
+        except yaml.YAMLError as e:
+            return {'Status': False, 'Errors': str(e)}
+        else:
             # TODO: удалить перед релизом
             shop, _ = Shop.objects.get_or_create(name=data['shop'])
 
@@ -34,9 +49,11 @@ class Command(BaseCommand):
                                                            model=item['model'])
 
                 product_info, is_product_info_created = ProductInfo.objects.get_or_create(product_id=product.id,
-                                                                 shop_id=shop.id,
-                                                                 defaults={'price': item['price'],
-                                                                           'quantity': item['quantity']})
+                                                                                          shop_id=shop.id,
+                                                                                          defaults={
+                                                                                              'price': item['price'],
+                                                                                              'quantity': item[
+                                                                                                  'quantity']})
 
                 if not is_product_info_created:
                     product_info.price = item['price']
@@ -61,57 +78,3 @@ class Command(BaseCommand):
             ProductInfo.objects.bulk_update(product_info_object_list, ['price', 'quantity'])
 
             return {'Status': 'Success'}
-
-        except yaml.YAMLError as e:
-            return {'Status': False, 'Errors': str(e)}
-
-        # TODO: удалить перед релизом
-        # work:
-        #
-        # try:
-        #     data = yaml.safe_load(stream)
-        #
-        #     # Этот код использую, чтобы предотвратить создание магазина от левых челов
-        #     # try:
-        #     #     shop = Shop.objects.get_or_create(name=data['shop'])
-        #     # except Shop.DoesNotExist as e:
-        #     #     return {'Status': 'Error', "Error": "Магазина не существует. Обратитесь к администратору сайта"}
-        #
-        #     shop = Shop.objects.get_or_create(name=data['shop'])[0]
-        #
-        #     for ctgry in data['categories']:
-        #         category = Category.objects.get_or_create(
-        #             id=ctgry['id'],
-        #             name=ctgry['name']
-        #         )[0]
-        #         shop.categories.add(category)
-        #         shop.save()
-        #
-        #     for prdct in data['goods']:
-        #         product = Product.objects.get_or_create(
-        #             pk=prdct['id'],
-        #             category=Category.objects.get(id=int(prdct['category'])),
-        #             name=prdct['name'],
-        #             model=prdct['model']
-        #         )[0]
-        #
-        #     product_info = ProductInfo.objects.create(
-        #         product=product,
-        #         shop=shop,
-        #         price=prdct['price'],
-        #         quantity=prdct['quantity']
-        #     )
-        #
-        #     for parameter_name, parameter_value in prdct['parameters'].items():
-        #         parameter = Parameter.objects.get_or_create(name=parameter_name)[0]
-        #
-        #         ProductParameter.objects.create(
-        #             product_info=product_info,
-        #             parameter=parameter,
-        #             value=parameter_value
-        #         )
-        #
-        #     return {'Status': 'Success'}
-        #
-        # except yaml.YAMLError as exc:
-        #     print(exc)

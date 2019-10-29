@@ -1,115 +1,103 @@
 # -*- coding: utf-8 -*-
-from requests import get
-
-from django.core.validators import URLValidator
-from django.core.exceptions import ValidationError
-
+from rest_framework import viewsets
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import permissions
-
-from api.management.commands.load_yaml import Command
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from app.models import Order, Shop
-from api.serializers import OrderShortSerializer, StateSerializer, OrderFullSerializer
+
+from api.serializers import OrderSerializer, ShopSerializer
+from api.permissions import IsShopAdmin
+from api.management.commands.load_yaml import Command
 
 
 # API's views
 
-class OrderView(APIView):
-    permission_classes = [permissions.IsAuthenticated, ]
+class OrderViewSet(viewsets.ViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
-        try:
-            # Получить детали заказа по id.
-            id = int(kwargs['id'])
-            order = Order.objects.get(pk=id)
-            serializer = OrderFullSerializer(order)
-            return Response({"order": serializer.data})
-        except KeyError:
-            # Получить список заказов.
-            queryset = Order.objects.filter(user=request.user)
-            serializer = OrderShortSerializer(queryset, many=True)
-            return Response({"orders": serializer.data})
+    def list(self, request):
+        # Получить список заказов.
+        queryset = self.queryset.filter(user=request.user)
+        serializer = self.serializer_class(queryset, many=True, fields=('id', 'create_date'))
+        return Response({"orders": serializer.data})
+
+    def retrieve(self, request, pk=None):
+        # Получить детали заказа по id.
+        queryset = self.queryset.filter(user=request.user)
+        order = get_object_or_404(queryset, pk=pk)
+        serializer = self.serializer_class(order)
+        return Response({"order": serializer.data})
 
 
-class StateView(APIView):
-    permission_classes = [permissions.IsAuthenticated, ]
+class StateViewSet(viewsets.ViewSet):
+    queryset = Shop.objects.all()
+    serializer_class = ShopSerializer
+    permission_classes = [IsShopAdmin, IsAdminUser]
 
-    def get(self, request, *args, **kwargs):
-        """Получить текущий статус магазина по id."""
-        shop = request.user.controlled_shop.all()
-        serializer = StateSerializer(shop, many=True)
+    def list(self, request):
+        """Получить текущий статус всех контролируемых магазинов."""
+        queryset = self.queryset.filter(user_admins=request.user)
+        serializer = self.serializer_class(queryset, many=True, fields=('name', 'state'))
         return Response(serializer.data)
 
-    def post(self, request, *args, **kwargs):
-        """Изменить статус магазина."""
-        user = request.user
+    def retrieve(self, request, pk=None):
+        """Получить текущий статус контролируемого магазина по id."""
+        queryset = self.queryset.filter(user_admins=request.user)
+        order = get_object_or_404(queryset, pk=pk)
+        serializer = self.serializer_class(order, fields=('name', 'state'))
+        return Response({"order": serializer.data})
+
+    def partial_update(self, request, pk=None):
         state = request.data.get('state')
+        queryset = self.queryset.filter(user_admins=request.user)
 
-        try:
-            # Изменить статус магазина по id.
-            id = int(kwargs['id'])
-            try:
-                shop = Shop.objects.get(pk=id)
-            except Shop.DoesNotExist as e:
-                return Response({'Status': False, 'Error': str(e)})
+        shop = get_object_or_404(queryset, pk=pk)
+        serializer = self.serializer_class(shop, data=request.data, fields=('state'))
+        if serializer.is_valid() and state in ('on', 'off'):
+            serializer.save(state=state)
+        return Response({
+            'shop_id': pk,
+            'state': shop.state
+        })
 
-            if user not in shop.user_admins.all():
-                return Response({'Status': False, 'Errors': 'У вас нет прав редактирования этого магазина.'})
+    def create(self, request):
+        # Изменить статус всех магазинов, контролируемых пользователем.
+        state = request.data.get('state')
+        queryset = self.queryset.filter(user_admins=request.user)
 
-            if state and state in ('on', 'off'):
-                try:
-                    shop.state = state
-                    shop.save()
-                    return Response({
-                        'shop_id': id,
-                        'state': state
-                    })
-                except ValueError as e:
-                    return Response({'Status': False, 'Errors': str(e)})
-            return Response({'Status': False, 'Errors': 'State не прошел сериализацию.'})
+        shop_id_list = [shop['id'] for shop in queryset.values()]  # shop_id_list == [7]
+        data = [{'id': id, 'state': state} for id in shop_id_list]  # data == [{'id': 7, 'state': 'on'}]
 
-        except KeyError as e:
-            # Изменить статус всех магазинов, контролируемых пользователем.
-            try:
-                if state and state in ('on', 'off'):
-                    shops = Shop.objects.filter(user_admins=request.user.id)
-                    shops.update(state=str(state))
-                    serializer = StateSerializer(shops, many=True)
-                    return Response({'Shops': serializer.data})
-                return Response({'Status': False, 'Errors': 'State не прошел сериализацию.'})
+        serializer = self.serializer_class(queryset, data=data, fields=('pk', 'state'), many=True)
+        if serializer.is_valid() and state in ('on', 'off'):
+            serializer.save()
 
-            except ValueError as error:
-                return Response({'Status': False, 'Errors': str(error)})
+        return Response(serializer.data)
 
-
+# TODO: удалить перед релизом
 from django.conf import settings
 
-class PriceUpdateView(APIView):
-    def get(self, request, *args, **kwargs):
+class PriceUpdateViewSet(viewsets.ViewSet):
+    permission_classes = [IsShopAdmin, IsAdminUser]
+
+    def list(self, request):
         # TODO: удалить перед релизом
+        # Тест. Работает с локалки
         filename = fr'{settings.BASE_DIR}\data\shop1.yaml'
         print(filename)
         with open(filename, 'r', encoding='utf-8') as stream:
-            print(stream)
             load_yaml = Command()
             e = load_yaml.handle(stream)
+            return Response({str(e)})
 
-        return Response({str(e)})
 
-    def post(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         """Обновление ассортимента магазина с yaml url."""
         url = request.data.get('url')
-        if url:
-            validate_url = URLValidator()
-            try:
-                validate_url(url)
-            except ValidationError as e:
-                return Response({'Status': False, 'Errors': str(e)})
-            else:
-                stream = get(url).content
 
-                load_yaml = Command()
-                load_yaml.handle(stream)
-                return Response({'Status': True})
+        load_yaml = Command()
+        output = load_yaml.handle(url)
+        return Response({str(output)})
