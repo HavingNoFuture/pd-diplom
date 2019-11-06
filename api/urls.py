@@ -23,20 +23,19 @@ from api import views
 
 
 urlpatterns = [
+    path('', include('djoser.urls')),
+    path('', include('djoser.urls.authtoken')),
     path('openapi', get_schema_view(
-        title="Your Project",
+        title="Shop API",
         description="API for all things …",
         # version="1.0.0",
         urlconf='api.urls'
     ), name='openapi-schema'),
-    path('', include('djoser.urls')),
-    path('', include('djoser.urls.authtoken')),
 ]
 
 router = routers.SimpleRouter()
 router.register(r'partner/order', views.OrderViewSet)
 router.register(r'partner/state', views.StateViewSet)
 router.register(r'partner/update', views.PriceUpdateViewSet, basename='price_update')
-
 
 urlpatterns += router.urls

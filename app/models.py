@@ -75,7 +75,7 @@ def pre_save_slug(sender, instance, *args, **kwargs):
             instance.slug = slugify(instance.name)
 
 
-USER_STATE_CHOICES = (
+SHOP_STATE_CHOICES = (
     ('on', 'on'),
     ('off', 'off')
 )
@@ -86,7 +86,7 @@ class Shop(models.Model):
     url = models.CharField(max_length=120)
     slug = models.SlugField(blank=True)
     logo = models.ImageField(blank=True)
-    state = models.CharField(max_length=3, choices=USER_STATE_CHOICES, default='off')
+    state = models.CharField(max_length=3, choices=SHOP_STATE_CHOICES, default='off')
     user_admins = models.ManyToManyField('User', related_name='controlled_shop')
 
     def __str__(self):

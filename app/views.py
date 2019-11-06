@@ -8,8 +8,22 @@ from .forms import RegistrationForm, LoginForm, OrderForm, ContactForm
 
 from app.models import Category, Product, Shop, ProductInfo, Cart, CartItem, Order
 
+from app.tasks import send_mail_task
+from django.core.mail import send_mail
 
 def main_page_view(request):
+    print('do')
+    result = send_mail_task.delay(('alex.erm@yandex.ru',), 'Celery cookbook test', 'test', {})
+    # send_mail(
+    #     'Verify your QuickPublisher account',
+    #     'Follow this link to verify your account: ',
+    #     'alex.erm4@gmail.com',
+    #     ['alex.erm@yandex.ru',],
+    #     fail_silently=False,
+    # )
+    result.get(timeout=1)
+    print('after')
+    print(result.backend)
     return render(request, 'app/main.html')
 
 

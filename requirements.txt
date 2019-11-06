@@ -6,3 +6,4 @@ PyYAML==5.1.2
 requests==2.22.0
 transliterate==1.10.2
 uritemplate==3.0.0
+celery==4.3.0
