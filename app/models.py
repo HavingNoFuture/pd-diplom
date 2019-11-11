@@ -83,7 +83,7 @@ SHOP_STATE_CHOICES = (
 
 class Shop(models.Model):
     name = models.CharField(max_length=90)
-    url = models.CharField(max_length=120)
+    url = models.CharField(max_length=120, blank=True)
     slug = models.SlugField(blank=True)
     logo = models.ImageField(blank=True)
     state = models.CharField(max_length=3, choices=SHOP_STATE_CHOICES, default='off')
@@ -93,7 +93,7 @@ class Shop(models.Model):
         return self.name
 
     def get_absolute_url(self):
-      return reverse('shop', kwargs={'slug': self.slug})
+        return reverse('shop', kwargs={'slug': self.slug})
 
 pre_save.connect(pre_save_slug, sender=Shop)
 
@@ -107,7 +107,7 @@ class Category(models.Model):
         return self.name
 
     def get_absolute_url(self):
-      return reverse('category', kwargs={'slug': self.slug})
+        return reverse('category', kwargs={'slug': self.slug})
 
 pre_save.connect(pre_save_slug, sender=Category)
 
@@ -117,7 +117,7 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     model = models.CharField(max_length = 120, blank=True)
     slug = models.SlugField(blank=True)
-    image = models.ImageField()
+    image = models.ImageField(blank=True)
     description = models.TextField()
 
     def __str__(self):
@@ -136,7 +136,7 @@ class ProductInfo(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
     quantity = models.PositiveSmallIntegerField()
-    price = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=9, decimal_places=2, default=0.00)
 
     def __str__(self):
         return f'{self.product.name} - Product Info'
@@ -156,6 +156,11 @@ class ProductParameter(models.Model):
 
     def __str__(self):
         return f'{self.product_info.product.name} - {self.parameter}'
+
+
+def pre_save_cart_item_total(sender, instance, *args, **kwargs):
+    # Автоматически считают сумму стоимости предметов элемента корзины перед сохранением этого элемента.
+    instance.item_total = instance.productinfo.price * instance.quantity
 
 
 class CartItem(models.Model):
@@ -180,9 +185,20 @@ class CartItem(models.Model):
         self.save()
 
 
+pre_save.connect(pre_save_cart_item_total, sender=CartItem)
+
+
+def pre_save_total(sender, instance, *args, **kwargs):
+    # Автоматически считают сумму стоимости предметов корзины перед сохранением корзины.
+    total = Decimal(0)
+    for item in instance.items.all():
+        total += item.item_total
+    instance.cart_total = total
+
+
 class Cart(models.Model):
     items = models.ManyToManyField(CartItem)
-    cart_total = models.DecimalField(max_digits=9, decimal_places=2, default=0.00)
+    cart_total = models.DecimalField(max_digits=9, decimal_places=2, default=0.00, blank=True)
 
     def __str__(self):
         return f'Cart № {self.pk}'
@@ -216,6 +232,9 @@ class Cart(models.Model):
         cart.cart_total = new_cart_total
         cart.save()
         return cart.cart_total
+
+
+pre_save.connect(pre_save_total, sender=Cart)
 
 
 ORDER_STATUS_CHOICES = (

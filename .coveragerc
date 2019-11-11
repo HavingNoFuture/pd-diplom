@@ -1,0 +1,7 @@
+[run]
+source = ./app/
+omit = 
+	*migrations*
+	*tests*
+	env/*
+	manage.py

@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
 
+from django.core.exceptions import PermissionDenied
+
 from app.models import Order, Shop
 
 from api.serializers import OrderSerializer, ShopSerializer
@@ -12,27 +14,39 @@ from api.permissions import IsShopAdmin
 from api.management.commands.load_yaml import Command
 
 
-# API's views
-
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
-    @action(methods=['get'], detail=False, url_path='', url_name='get-order-list')
-    def get_order_list(self, request):
-        # Получить список заказов.
-        queryset = self.queryset.filter(user=request.user)
-        serializer = self.serializer_class(queryset, many=True)
-        return Response({"orders": serializer.data})
+    def get_queryset(self, *args, **kwargs):
+        queryset = self.queryset.filter(user=self.request.user)
+        return queryset
 
-    @action(methods=['get'], detail=True, url_path='', url_name='get-order-detail')
-    def get_order_detail(self, request, pk=None):
-        # Получить детали заказа по id.
-        queryset = self.queryset.filter(user=request.user)
-        order = get_object_or_404(queryset, pk=pk)
-        serializer = self.serializer_class(order)
-        return Response({"order": serializer.data})
+    def get_object(self, *args, **kwargs):
+        user = self.request.user
+        pk = self.kwargs['pk']
+        try:
+            order = self.queryset.get(pk=pk, user=user)
+        except Order.DoesNotExist:
+            raise PermissionDenied()
+        return order
+
+    # @action(methods=['get'], detail=False, url_path='', url_name='get-order-list')
+    # def get_order_list(self, request):
+    #     # Получить список заказов.
+    #     # print(self.queryset.filter(user=self.context['request'].user))
+    #     queryset = self.queryset
+    #     serializer = self.serializer_class(queryset, many=True)
+    #     return Response({"orders": serializer.data})
+    #
+    # @action(methods=['get'], detail=True, url_path='', url_name='get-order-detail')
+    # def get_order_detail(self, request, pk=None):
+    #     # Получить детали заказа по id.
+    #     queryset = self.queryset.filter(user=request.user)
+    #     order = get_object_or_404(queryset, pk=pk)
+    #     serializer = self.serializer_class(order)
+    #     return Response({"order": serializer.data})
 
 
 class StateViewSet(viewsets.ModelViewSet):
@@ -40,22 +54,35 @@ class StateViewSet(viewsets.ModelViewSet):
     serializer_class = ShopSerializer
     permission_classes = [IsShopAdmin, IsAdminUser]
 
-    @action(methods=['get'], detail=False, url_path='', url_name='get-state-list')
-    def get_state_list(self, request):
-        """Получить текущий статус всех контролируемых магазинов."""
+    def get_queryset(self, *args, **kwargs):
+        queryset = self.queryset.filter(user_admins=self.request.user)
+        return queryset
 
-        queryset = self.queryset.filter(user_admins=request.user)
-        serializer = self.serializer_class(queryset, many=True)
-        return Response(serializer.data)
+    def get_object(self, *args, **kwargs):
+        user = self.request.user
+        pk = self.kwargs['pk']
+        try:
+            shop_info = self.queryset.get(pk=pk, user_admins=user)
+        except Shop.DoesNotExist:
+            raise PermissionDenied()
+        return shop_info
 
-    @action(methods=['get'], detail=True, url_path='', url_name='get-state-detail')
-    def get_state_detail(self, request, pk=None):
-        """Получить текущий статус магазина по id."""
+    # @action(methods=['get'], detail=False, url_path='', url_name='get-state-list')
+    # def get_state_list(self, request):
+    #     """Получить текущий статус всех контролируемых магазинов."""
+    #
+    #     queryset = self.queryset.filter(user_admins=request.user)
+    #     serializer = self.serializer_class(queryset, many=True)
+    #     return Response(serializer.data)
 
-        queryset = self.queryset.filter(user_admins=request.user)
-        order = get_object_or_404(queryset, pk=pk)
-        serializer = self.serializer_class(order)
-        return Response({"shop_info": serializer.data})
+    # @action(methods=['get'], detail=True, url_path='', url_name='get-state-detail')
+    # def get_state_detail(self, request, pk=None):
+    #     """Получить текущий статус магазина по id."""
+    #
+    #     queryset = self.queryset.filter(user_admins=request.user)
+    #     order = get_object_or_404(queryset, pk=pk)
+    #     serializer = self.serializer_class(order)
+    #     return Response({"shop_info": serializer.data})
 
     @action(methods=['post'], detail=True, url_path='', url_name='update-state-detail')
     def update_state_detail(self, request, pk=None):

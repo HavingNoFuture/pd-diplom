@@ -7,3 +7,4 @@ requests==2.22.0
 transliterate==1.10.2
 uritemplate==3.0.0
 celery==4.3.0
+coverage==4.5.4
