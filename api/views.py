@@ -19,7 +19,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self, *args, **kwargs):
+    def get_queryset(self, *args, **kwargs): 
         queryset = self.queryset.filter(user=self.request.user)
         return queryset
 
@@ -32,22 +32,6 @@ class OrderViewSet(viewsets.ModelViewSet):
             raise PermissionDenied()
         return order
 
-    # @action(methods=['get'], detail=False, url_path='', url_name='get-order-list')
-    # def get_order_list(self, request):
-    #     # Получить список заказов.
-    #     # print(self.queryset.filter(user=self.context['request'].user))
-    #     queryset = self.queryset
-    #     serializer = self.serializer_class(queryset, many=True)
-    #     return Response({"orders": serializer.data})
-    #
-    # @action(methods=['get'], detail=True, url_path='', url_name='get-order-detail')
-    # def get_order_detail(self, request, pk=None):
-    #     # Получить детали заказа по id.
-    #     queryset = self.queryset.filter(user=request.user)
-    #     order = get_object_or_404(queryset, pk=pk)
-    #     serializer = self.serializer_class(order)
-    #     return Response({"order": serializer.data})
-
 
 class StateViewSet(viewsets.ModelViewSet):
     queryset = Shop.objects.all()
@@ -59,39 +43,24 @@ class StateViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_object(self, *args, **kwargs):
-        user = self.request.user
+
         pk = self.kwargs['pk']
         try:
-            shop_info = self.queryset.get(pk=pk, user_admins=user)
+            shop_info = self.get_queryset().get(pk=pk)
         except Shop.DoesNotExist:
             raise PermissionDenied()
         return shop_info
-
-    # @action(methods=['get'], detail=False, url_path='', url_name='get-state-list')
-    # def get_state_list(self, request):
-    #     """Получить текущий статус всех контролируемых магазинов."""
-    #
-    #     queryset = self.queryset.filter(user_admins=request.user)
-    #     serializer = self.serializer_class(queryset, many=True)
-    #     return Response(serializer.data)
-
-    # @action(methods=['get'], detail=True, url_path='', url_name='get-state-detail')
-    # def get_state_detail(self, request, pk=None):
-    #     """Получить текущий статус магазина по id."""
-    #
-    #     queryset = self.queryset.filter(user_admins=request.user)
-    #     order = get_object_or_404(queryset, pk=pk)
-    #     serializer = self.serializer_class(order)
-    #     return Response({"shop_info": serializer.data})
 
     @action(methods=['post'], detail=True, url_path='', url_name='update-state-detail')
     def update_state_detail(self, request, pk=None):
         """Изменить текущий статус магазина по id."""
 
-        queryset = self.queryset.filter(user_admins=request.user)
-        shop = get_object_or_404(queryset, pk=pk)
-        serializer = self.serializer_class(shop, data=request.data)
+        try:
+            shop = self.get_queryset().get(pk=pk)
+        except Shop.DoesNotExist:
+            raise PermissionDenied()
 
+        serializer = self.serializer_class(shop, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -103,7 +72,7 @@ class StateViewSet(viewsets.ModelViewSet):
         """Изменить статус всех магазинов, контролируемых пользователем."""
 
         state = request.data.get('state')
-        queryset = self.queryset.filter(user_admins=request.user)
+        queryset = self.get_queryset()
 
         shop_list, errors_list = [], []
         for shop in queryset:
@@ -128,19 +97,19 @@ from django.conf import settings
 class PriceUpdateViewSet(viewsets.ViewSet):
     permission_classes = [IsShopAdmin, IsAdminUser]
 
-    @action(methods=['get'], detail=False, url_path='', url_name='update-price-local')
-    def update_price_local(self, request):
-        # TODO: удалить перед релизом
-        # Тест. Работает с локалки
+    # @action(methods=['get'], detail=False, url_path='update_local', url_name='update-price-local')
+    # def update_price_local(self, request):
+    #     # TODO: удалить перед релизом
+    #     # Тест. Работает с локалки
+    #
+    #     filename = fr'{settings.BASE_DIR}\data\shop1.yaml'
+    #     print(filename)
+    #     with open(filename, 'r', encoding='utf-8') as stream:
+    #         load_yaml = Command()
+    #         e = load_yaml.handle(stream)
+    #         return Response({str(e)})
 
-        filename = fr'{settings.BASE_DIR}\data\shop1.yaml'
-        print(filename)
-        with open(filename, 'r', encoding='utf-8') as stream:
-            load_yaml = Command()
-            e = load_yaml.handle(stream)
-            return Response({str(e)})
-
-    @action(methods=['post'], detail=False, url_path='', url_name='update-price')
+    @action(methods=['post'], detail=False, url_path='update', url_name='update-price')
     def update_price(self, request, *args, **kwargs):
         """Обновление ассортимента магазина с yaml url."""
 

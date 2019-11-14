@@ -234,6 +234,126 @@ paths:
                 properties:
                   current_password:
                     type: string
+  /api/v1/partner/state/{id}/:
+    get:
+      operationId: retrieveShop
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this shop.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - state
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  name:
+                    type: string
+                    readOnly: true
+                  state:
+                    enum:
+                    - 'on'
+                    - 'off'
+    post:
+      operationId: update_state_detailShop
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this shop.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - state
+              properties:
+                state:
+                  enum:
+                  - 'on'
+                  - 'off'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - state
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  name:
+                    type: string
+                    readOnly: true
+                  state:
+                    enum:
+                    - 'on'
+                    - 'off'
+  /api/v1/partner/state/:
+    get:
+      operationId: ListShops
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - state
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  name:
+                    type: string
+                    readOnly: true
+                  state:
+                    enum:
+                    - 'on'
+                    - 'off'
+    post:
+      operationId: update_state_listShop
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - state
+              properties:
+                state:
+                  enum:
+                  - 'on'
+                  - 'off'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                required:
+                - state
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  name:
+                    type: string
+                    readOnly: true
+                  state:
+                    enum:
+                    - 'on'
+                    - 'off'
   /api/v1/partner/order/:
     get:
       operationId: ListOrders
@@ -277,7 +397,6 @@ paths:
                             productinfo:
                               required:
                               - product
-                              - price
                               properties:
                                 product:
                                   required:
@@ -288,7 +407,10 @@ paths:
                                       maxLength: 120
                                   type: object
                                 price:
-                                  type: integer
+                                  type: number
+                                  multipleOf: 0.01
+                                  maximum: 10000000
+                                  minimum: -10000000
                               type: object
                             quantity:
                               type: integer
@@ -339,7 +461,6 @@ paths:
                           productinfo:
                             required:
                             - product
-                            - price
                             properties:
                               product:
                                 required:
@@ -350,7 +471,10 @@ paths:
                                     maxLength: 120
                                 type: object
                               price:
-                                type: integer
+                                type: number
+                                multipleOf: 0.01
+                                maximum: 10000000
+                                minimum: -10000000
                             type: object
                           quantity:
                             type: integer
@@ -407,7 +531,6 @@ paths:
                             productinfo:
                               required:
                               - product
-                              - price
                               properties:
                                 product:
                                   required:
@@ -418,79 +541,10 @@ paths:
                                       maxLength: 120
                                   type: object
                                 price:
-                                  type: integer
-                              type: object
-                            quantity:
-                              type: integer
-                            item_total:
-                              type: number
-                              multipleOf: 0.01
-                              maximum: 10000000
-                              minimum: -10000000
-                      cart_total:
-                        type: number
-                        multipleOf: 0.01
-                        maximum: 10000000
-                        minimum: -10000000
-                    type: object
-                  address:
-                    type: string
-                    maxLength: 500
-  /api/v1/partner/order/get_order_list/:
-    get:
-      operationId: get_order_listOrder
-      parameters: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                required:
-                - cart
-                properties:
-                  id:
-                    type: integer
-                    readOnly: true
-                  create_date:
-                    type: string
-                    format: date-time
-                    readOnly: true
-                  comment:
-                    type: string
-                  status:
-                    enum:
-                    - "\u041D\u043E\u0432\u044B\u0439"
-                    - "\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\
-                      \u043D"
-                    - "\u0421\u043E\u0431\u0440\u0430\u043D"
-                    - "\u041E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D"
-                    - "\u0414\u043E\u0441\u0442\u0430\u0432\u043B\u0435\u043D"
-                    - "\u041E\u0442\u043C\u0435\u043D\u0435\u043D"
-                  cart:
-                    required:
-                    - items
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          required:
-                          - productinfo
-                          properties:
-                            productinfo:
-                              required:
-                              - product
-                              - price
-                              properties:
-                                product:
-                                  required:
-                                  - name
-                                  properties:
-                                    name:
-                                      type: string
-                                      maxLength: 120
-                                  type: object
-                                price:
-                                  type: integer
+                                  type: number
+                                  multipleOf: 0.01
+                                  maximum: 10000000
+                                  minimum: -10000000
                               type: object
                             quantity:
                               type: integer
@@ -557,7 +611,6 @@ paths:
                             productinfo:
                               required:
                               - product
-                              - price
                               properties:
                                 product:
                                   required:
@@ -568,7 +621,10 @@ paths:
                                       maxLength: 120
                                   type: object
                                 price:
-                                  type: integer
+                                  type: number
+                                  multipleOf: 0.01
+                                  maximum: 10000000
+                                  minimum: -10000000
                               type: object
                             quantity:
                               type: integer
@@ -625,7 +681,6 @@ paths:
                           productinfo:
                             required:
                             - product
-                            - price
                             properties:
                               product:
                                 required:
@@ -636,7 +691,10 @@ paths:
                                     maxLength: 120
                                 type: object
                               price:
-                                type: integer
+                                type: number
+                                multipleOf: 0.01
+                                maximum: 10000000
+                                minimum: -10000000
                             type: object
                           quantity:
                             type: integer
@@ -693,7 +751,6 @@ paths:
                             productinfo:
                               required:
                               - product
-                              - price
                               properties:
                                 product:
                                   required:
@@ -704,7 +761,10 @@ paths:
                                       maxLength: 120
                                   type: object
                                 price:
-                                  type: integer
+                                  type: number
+                                  multipleOf: 0.01
+                                  maximum: 10000000
+                                  minimum: -10000000
                               type: object
                             quantity:
                               type: integer
@@ -759,7 +819,6 @@ paths:
                           productinfo:
                             required:
                             - product
-                            - price
                             properties:
                               product:
                                 required:
@@ -770,7 +829,10 @@ paths:
                                     maxLength: 120
                                 type: object
                               price:
-                                type: integer
+                                type: number
+                                multipleOf: 0.01
+                                maximum: 10000000
+                                minimum: -10000000
                             type: object
                           quantity:
                             type: integer
@@ -827,7 +889,6 @@ paths:
                             productinfo:
                               required:
                               - product
-                              - price
                               properties:
                                 product:
                                   required:
@@ -838,7 +899,10 @@ paths:
                                       maxLength: 120
                                   type: object
                                 price:
-                                  type: integer
+                                  type: number
+                                  multipleOf: 0.01
+                                  maximum: 10000000
+                                  minimum: -10000000
                               type: object
                             quantity:
                               type: integer
@@ -904,7 +968,6 @@ paths:
                             productinfo:
                               required:
                               - product
-                              - price
                               properties:
                                 product:
                                   required:
@@ -915,7 +978,10 @@ paths:
                                       maxLength: 120
                                   type: object
                                 price:
-                                  type: integer
+                                  type: number
+                                  multipleOf: 0.01
+                                  maximum: 10000000
+                                  minimum: -10000000
                               type: object
                             quantity:
                               type: integer
@@ -933,345 +999,6 @@ paths:
                   address:
                     type: string
                     maxLength: 500
-  /api/v1/partner/order/{id}/get_order_detail/:
-    get:
-      operationId: get_order_detailOrder
-      parameters:
-      - name: id
-        in: path
-        required: true
-        description: A unique integer value identifying this order.
-        schema:
-          type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                required:
-                - cart
-                properties:
-                  id:
-                    type: integer
-                    readOnly: true
-                  create_date:
-                    type: string
-                    format: date-time
-                    readOnly: true
-                  comment:
-                    type: string
-                  status:
-                    enum:
-                    - "\u041D\u043E\u0432\u044B\u0439"
-                    - "\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\
-                      \u043D"
-                    - "\u0421\u043E\u0431\u0440\u0430\u043D"
-                    - "\u041E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D"
-                    - "\u0414\u043E\u0441\u0442\u0430\u0432\u043B\u0435\u043D"
-                    - "\u041E\u0442\u043C\u0435\u043D\u0435\u043D"
-                  cart:
-                    required:
-                    - items
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          required:
-                          - productinfo
-                          properties:
-                            productinfo:
-                              required:
-                              - product
-                              - price
-                              properties:
-                                product:
-                                  required:
-                                  - name
-                                  properties:
-                                    name:
-                                      type: string
-                                      maxLength: 120
-                                  type: object
-                                price:
-                                  type: integer
-                              type: object
-                            quantity:
-                              type: integer
-                            item_total:
-                              type: number
-                              multipleOf: 0.01
-                              maximum: 10000000
-                              minimum: -10000000
-                      cart_total:
-                        type: number
-                        multipleOf: 0.01
-                        maximum: 10000000
-                        minimum: -10000000
-                    type: object
-                  address:
-                    type: string
-                    maxLength: 500
-  /api/v1/partner/state/:
-    get:
-      operationId: ListShops
-      parameters: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                required:
-                - name
-                - state
-                properties:
-                  id:
-                    type: integer
-                    readOnly: true
-                  name:
-                    type: string
-                    maxLength: 90
-                  state:
-                    enum:
-                    - 'on'
-                    - 'off'
-    post:
-      operationId: createShop
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              required:
-              - name
-              - state
-              properties:
-                name:
-                  type: string
-                  maxLength: 90
-                state:
-                  enum:
-                  - 'on'
-                  - 'off'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                required:
-                - name
-                - state
-                properties:
-                  id:
-                    type: integer
-                    readOnly: true
-                  name:
-                    type: string
-                    maxLength: 90
-                  state:
-                    enum:
-                    - 'on'
-                    - 'off'
-  /api/v1/partner/state/get_state_list/:
-    get:
-      operationId: get_state_listShop
-      parameters: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                required:
-                - name
-                - state
-                properties:
-                  id:
-                    type: integer
-                    readOnly: true
-                  name:
-                    type: string
-                    maxLength: 90
-                  state:
-                    enum:
-                    - 'on'
-                    - 'off'
-  /api/v1/partner/state/{id}/:
-    get:
-      operationId: retrieveShop
-      parameters:
-      - name: id
-        in: path
-        required: true
-        description: A unique integer value identifying this shop.
-        schema:
-          type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                required:
-                - name
-                - state
-                properties:
-                  id:
-                    type: integer
-                    readOnly: true
-                  name:
-                    type: string
-                    maxLength: 90
-                  state:
-                    enum:
-                    - 'on'
-                    - 'off'
-    put:
-      operationId: updateShop
-      parameters:
-      - name: id
-        in: path
-        required: true
-        description: A unique integer value identifying this shop.
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              required:
-              - name
-              - state
-              properties:
-                name:
-                  type: string
-                  maxLength: 90
-                state:
-                  enum:
-                  - 'on'
-                  - 'off'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                required:
-                - name
-                - state
-                properties:
-                  id:
-                    type: integer
-                    readOnly: true
-                  name:
-                    type: string
-                    maxLength: 90
-                  state:
-                    enum:
-                    - 'on'
-                    - 'off'
-    patch:
-      operationId: partial_updateShop
-      parameters:
-      - name: id
-        in: path
-        required: true
-        description: A unique integer value identifying this shop.
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                name:
-                  type: string
-                  maxLength: 90
-                state:
-                  enum:
-                  - 'on'
-                  - 'off'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                required:
-                - name
-                - state
-                properties:
-                  id:
-                    type: integer
-                    readOnly: true
-                  name:
-                    type: string
-                    maxLength: 90
-                  state:
-                    enum:
-                    - 'on'
-                    - 'off'
-    delete:
-      operationId: destroyShop
-      parameters:
-      - name: id
-        in: path
-        required: true
-        description: A unique integer value identifying this shop.
-        schema:
-          type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                required:
-                - name
-                - state
-                properties:
-                  id:
-                    type: integer
-                    readOnly: true
-                  name:
-                    type: string
-                    maxLength: 90
-                  state:
-                    enum:
-                    - 'on'
-                    - 'off'
-  /api/v1/partner/state/{id}/get_state_detail/:
-    get:
-      operationId: get_state_detailShop
-      parameters:
-      - name: id
-        in: path
-        required: true
-        description: A unique integer value identifying this shop.
-        schema:
-          type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                required:
-                - name
-                - state
-                properties:
-                  id:
-                    type: integer
-                    readOnly: true
-                  name:
-                    type: string
-                    maxLength: 90
-                  state:
-                    enum:
-                    - 'on'
-                    - 'off'
-  /api/v1/partner/update/update_price_local/:
-    get:
-      operationId: update_price_localPriceUpdateViewSet
-      parameters: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema: {}
   /api/v1/users/activation/:
     post:
       operationId: activationUser
@@ -1528,89 +1255,7 @@ paths:
           content:
             application/json:
               schema: {}
-  /api/v1/partner/state/update_state_list/:
-    post:
-      operationId: update_state_listShop
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              required:
-              - name
-              - state
-              properties:
-                name:
-                  type: string
-                  maxLength: 90
-                state:
-                  enum:
-                  - 'on'
-                  - 'off'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                required:
-                - name
-                - state
-                properties:
-                  id:
-                    type: integer
-                    readOnly: true
-                  name:
-                    type: string
-                    maxLength: 90
-                  state:
-                    enum:
-                    - 'on'
-                    - 'off'
-  /api/v1/partner/state/{id}/update_state_detail/:
-    post:
-      operationId: update_state_detailShop
-      parameters:
-      - name: id
-        in: path
-        required: true
-        description: A unique integer value identifying this shop.
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              required:
-              - name
-              - state
-              properties:
-                name:
-                  type: string
-                  maxLength: 90
-                state:
-                  enum:
-                  - 'on'
-                  - 'off'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                required:
-                - name
-                - state
-                properties:
-                  id:
-                    type: integer
-                    readOnly: true
-                  name:
-                    type: string
-                    maxLength: 90
-                  state:
-                    enum:
-                    - 'on'
-                    - 'off'
-  /api/v1/partner/update/update_price/:
+  /api/v1/partner/update/:
     post:
       operationId: update_pricePriceUpdateViewSet
       parameters: []

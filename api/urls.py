@@ -22,9 +22,26 @@ from django.urls import path, include
 from api import views
 
 
+state_detail = views.StateViewSet.as_view({
+    'get': 'retrieve',
+    'post': 'update_state_detail',
+})
+
+state_list = views.StateViewSet.as_view({
+    'get': 'list',
+    'post': 'update_state_list',
+})
+
+price_update = views.PriceUpdateViewSet.as_view({
+    'post': 'update_price',
+})
+
 urlpatterns = [
     path('', include('djoser.urls')),
     path('', include('djoser.urls.authtoken')),
+    path('partner/state/<int:pk>/', state_detail, name='state-detail'),
+    path('partner/state/', state_list, name='state-list'),
+    path('partner/update/', price_update, name='price-update'),
     path('openapi', get_schema_view(
         title="Shop API",
         description="API for all things …",
@@ -35,7 +52,5 @@ urlpatterns = [
 
 router = routers.SimpleRouter()
 router.register(r'partner/order', views.OrderViewSet)
-router.register(r'partner/state', views.StateViewSet)
-router.register(r'partner/update', views.PriceUpdateViewSet, basename='price_update')
 
 urlpatterns += router.urls

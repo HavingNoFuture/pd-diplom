@@ -160,7 +160,9 @@ def change_productinfo_view(request):
     productinfo = ProductInfo.objects.get(pk=productinfopk)
     cartitem = CartItem.objects.get(pk=cartitempk)
 
-    cartitem.change_productinfo(productinfo)
+    cartitem.productinfo = productinfo
+    cartitem.save()
+
     return JsonResponse({})
 
 
@@ -183,9 +185,10 @@ def change_item_quantity_view(request):
     cartitempk = request.GET.get('cartitempk')
 
     cart_item = CartItem.objects.get(pk=cartitempk)
-    cart_item.change_quantity(quantity)
+    cart_item.quantity = quantity
+    cart_item.save()
 
-    cart_total = cart.count_cart_total()
+    cart_total = cart.cart_total
 
     return JsonResponse({'item_total': cart_item.item_total,
                          'cartitempk': cartitempk,

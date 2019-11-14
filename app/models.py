@@ -27,6 +27,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     company = models.CharField(_('company'), max_length=100, blank=True)
     position = models.CharField(_('position'), max_length=100, blank=True)
     date_joined = models.DateTimeField(_('date joined'), auto_now_add=True)
+    is_staff = True
 
     objects = UserManager()
 
@@ -48,9 +49,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_name(self):
         return f'{self.first_name} {self.last_name}'
 
-    def is_staff(self): # ?
-        return True
-
 
 CONTACT_TYPE_CHOICES = (
     ('Телефон', 'Телефон'),
@@ -58,7 +56,7 @@ CONTACT_TYPE_CHOICES = (
 )
 
 
-class Contact(models.Model):
+class Contact(models.Model): # ?
     type = models.CharField(max_length=100, choices=CONTACT_TYPE_CHOICES, default='Телефон')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     value = models.CharField(max_length=200)
@@ -84,18 +82,12 @@ SHOP_STATE_CHOICES = (
 class Shop(models.Model):
     name = models.CharField(max_length=90)
     url = models.CharField(max_length=120, blank=True)
-    slug = models.SlugField(blank=True)
     logo = models.ImageField(blank=True)
     state = models.CharField(max_length=3, choices=SHOP_STATE_CHOICES, default='off')
     user_admins = models.ManyToManyField('User', related_name='controlled_shop')
 
     def __str__(self):
         return self.name
-
-    def get_absolute_url(self):
-        return reverse('shop', kwargs={'slug': self.slug})
-
-pre_save.connect(pre_save_slug, sender=Shop)
 
 
 class Category(models.Model):
@@ -122,9 +114,6 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
-
-    def get_info(self): # ?
-        return f'{self.name} {self.category}'
 
     def get_absolute_url(self):
       return reverse('product', kwargs={'slug': self.slug})
@@ -171,19 +160,6 @@ class CartItem(models.Model):
     def __str__(self):
         return f'Cart item №{self.pk}'
 
-    def count_item_total(self):
-        self.item_total = Decimal(self.productinfo.price) * Decimal(self.quantity)
-        self.save()
-
-    def change_quantity(self, quantity):
-        self.quantity = quantity
-        self.save()
-        self.count_item_total()
-
-    def change_productinfo(self, productinfo):
-        self.productinfo = productinfo
-        self.save()
-
 
 pre_save.connect(pre_save_cart_item_total, sender=CartItem)
 
@@ -201,18 +177,16 @@ class Cart(models.Model):
     cart_total = models.DecimalField(max_digits=9, decimal_places=2, default=0.00, blank=True)
 
     def __str__(self):
-        return f'Cart № {self.pk}'
+        return f'Cart №{self.pk}'
 
     def add_to_cart(self, productinfo):
+        # Добавляет productInfo к корзине, задает ей кол-во == 1
         cart = self
-        print(productinfo)
         new_item, _ = CartItem.objects.get_or_create(productinfo=productinfo)
-        print(new_item.productinfo.pk)
 
         if new_item not in cart.items.all():
             new_item.quantity = 1
             new_item.save()
-            new_item.count_item_total()
             cart.items.add(new_item)
             cart.save()
 
@@ -222,17 +196,6 @@ class Cart(models.Model):
             if cart_item == cartitem:
                 cart.items.remove(cart_item)
                 cart.save()
-
-    def count_cart_total(self):
-        cart = self
-        new_cart_total = Decimal(0.00)
-        for item in cart.items.all():
-            new_cart_total += Decimal(item.item_total)
-
-        cart.cart_total = new_cart_total
-        cart.save()
-        return cart.cart_total
-
 
 pre_save.connect(pre_save_total, sender=Cart)
 
