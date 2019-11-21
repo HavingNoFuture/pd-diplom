@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from rest_framework import viewsets
-from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
@@ -12,6 +11,7 @@ from app.models import Order, Shop
 from api.serializers import OrderSerializer, ShopSerializer
 from api.permissions import IsShopAdmin
 from api.management.commands.load_yaml import Command
+from api.tasks import do_import
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -97,23 +97,9 @@ from django.conf import settings
 class PriceUpdateViewSet(viewsets.ViewSet):
     permission_classes = [IsShopAdmin, IsAdminUser]
 
-    # @action(methods=['get'], detail=False, url_path='update_local', url_name='update-price-local')
-    # def update_price_local(self, request):
-    #     # TODO: удалить перед релизом
-    #     # Тест. Работает с локалки
-    #
-    #     filename = fr'{settings.BASE_DIR}\data\shop1.yaml'
-    #     print(filename)
-    #     with open(filename, 'r', encoding='utf-8') as stream:
-    #         load_yaml = Command()
-    #         e = load_yaml.handle(stream)
-    #         return Response({str(e)})
-
-    @action(methods=['post'], detail=False, url_path='update', url_name='update-price')
     def update_price(self, request, *args, **kwargs):
         """Обновление ассортимента магазина с yaml url."""
 
         url = request.data.get('url')
-        load_yaml = Command()
-        output = load_yaml.handle(url)
+        output = do_import(url)
         return Response({str(output)})

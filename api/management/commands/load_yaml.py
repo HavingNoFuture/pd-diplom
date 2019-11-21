@@ -12,28 +12,19 @@ class Command(BaseCommand):
         pass
 
     def handle(self, url, *args, **options):
-        # TODO: удалить перед релизом
-        # Тест. Проверка на файл
-        if url.__class__.__name__ == 'TextIOWrapper':
-            stream = url
-        else:
-            # Оставить.
-            validate_url = URLValidator()
-            validate_url(url)
-            stream = get(url).content
+        validate_url = URLValidator()
+        validate_url(url)
+        stream = get(url).content
 
         try:
             data = yaml.safe_load(stream)
         except yaml.YAMLError as e:
             return {'Status': False, 'Errors': str(e)}
         else:
-            # TODO: удалить перед релизом
-            shop, _ = Shop.objects.get_or_create(name=data['shop'])
-
-            # try:
-            #     shop, _ = Shop.objects.get_or_create(name=data['shop'])
-            # except Shop.DoesNotExist as e:
-            #     return {'Status': 'Error', "Error": "Магазина не существует. Обратитесь к администратору сайта"}
+            try:
+                shop, _ = Shop.objects.get_or_create(name=data['shop'])
+            except Shop.DoesNotExist as e:
+                return {'Status': 'Error', "Error": "Магазина не существует. Обратитесь к администратору сайта"}
 
             for category in data['categories']:
                 category_object, _ = Category.objects.get_or_create(id=category['id'],

@@ -33,11 +33,16 @@
 * Python 3
 * Django
 * Django Rest Framework
+* Celery
+* Redis server
 
 Реализованы такие кейсы как:
 * Авторизация по токену с помощью djoser в api.
 * Из модели пользователя убран username. Соотвественно авторизация по email.
 * Парсинг yaml документа с помощью PyYAML.
+* Выделил медленные задачи в Celery очередь: импорт yaml документа и отправка email.
+* Тестики, тестики.
+* Реализована OpenAPI схема. Документация API на POSTMAN.
 
 Задействованы такие фишки django как:
 * Рефакторинг и разбиение проекта на смысловые приложения.
@@ -48,3 +53,71 @@
 * Кастомные сигналы pre_save на модели.
 * Кастомный User manager.
 * Django forms.
+
+
+Использовал плюшки DRF:
+* Viewsets и Routers.
+* Permissons.
+* Serializers.
+
+## Установка проекта
+
+Клонируйте проект:
+
+    git clone https://github.com/HavingNoFuture/pd-diplom`
+
+Создайте python окружение для проекта и активируйте его:
+
+    pip install virtualenv
+    python3 -m venv env
+    source env/Scripts/activate
+
+Перейдите в склонированный проект, установите зависимости, подготовьте базу данных и создайте суперпользователя:
+
+    cd pd_diplom
+    pip install -r requirements.txt
+    python manage.py makemigrations
+    python manage.py migrate
+    python manage.py createsuperuser
+
+#### Установка и запуск redis server и celery server
+
+Для полноценной работы приложения вам потребуется использовать celery в качестве очереди задач и redis-server в качестве брокера сообщений.
+
+Установите redis-server следуя инструкциям по ссылке:
+https://redis.io/download
+
+Для установки redis-server на windows его можно скачать по ссылке:
+https://github.com/MicrosoftArchive/redis/releases
+
+После чего распакуйте архив, перейдите в созданный каталог и запустите файл `redis-server.exe`
+
+Celery установлена после установки зависимостей проекта. Просто запустите ее в новом окне эмулятора терминала с активированным окружением Python в каталоге проекта:
+
+    celery worker -A orders --loglevel=info --concurrency=4 --pool=gevent
+
+Используйте опцию --pool=gevent на windows
+
+#### Запуск тестового сервера
+
+Вы можете тестировать приложение с помощью тестового сервера:
+
+    python manage.py runserver
+
+####  Запуск тестов
+
+Вы можете запустить тесты как обычно:
+
+    python manage.py test
+
+При этом оценка покрытия с помощью coverage уже интегрирована в проект и сама система coverage установлена с остальными зависимостями
+
+Внимание! Перед запуском тестов обязательно запустите redis-server
+
+Вы можете использовать систему coverage как обычно. Например, сгенерировать html документацию, просматривать ее в браузере, видеть какие строки отработали в тестах:
+
+    coverage html
+
+Подробнее о командах coverage можно ознакомится в документации:
+
+https://coverage.readthedocs.io/en/v4.5.x/
