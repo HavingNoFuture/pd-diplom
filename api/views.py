@@ -18,6 +18,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+    throttle_scope = 'orders'
 
     def get_queryset(self, *args, **kwargs): 
         queryset = self.queryset.filter(user=self.request.user)
@@ -37,6 +38,7 @@ class StateViewSet(viewsets.ModelViewSet):
     queryset = Shop.objects.all()
     serializer_class = ShopSerializer
     permission_classes = [IsShopAdmin, IsAdminUser]
+    throttle_scope = 'states'
 
     def get_queryset(self, *args, **kwargs):
         queryset = self.queryset.filter(user_admins=self.request.user)
@@ -91,11 +93,10 @@ class StateViewSet(viewsets.ModelViewSet):
         return Response({'Status': True})
 
 
-# TODO: удалить перед релизом
-from django.conf import settings
-
 class PriceUpdateViewSet(viewsets.ViewSet):
     permission_classes = [IsShopAdmin, IsAdminUser]
+    throttle_scope = 'uploads'
+
 
     def update_price(self, request, *args, **kwargs):
         """Обновление ассортимента магазина с yaml url."""

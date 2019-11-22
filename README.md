@@ -59,6 +59,7 @@
 * Viewsets и Routers.
 * Permissons.
 * Serializers.
+* Throttling
 
 ## Установка проекта
 

@@ -140,6 +140,20 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
+
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle'
+    ],
+
+    'DEFAULT_THROTTLE_RATES': {
+        'orders': '200/day',
+        'state': '200/day',
+        'uploads': '50/day',
+        'burst': '60/min',
+        'sustained': '1000/day',
+        'user': '75/day',
+    }
 }
 
 DEFAULT_FROM_EMAIL = 'mail@gmail.com'
